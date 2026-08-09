@@ -1,0 +1,15 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.env
+backend/storage/renders/*.mp4
+backend/storage/temp/*
+backend/storage/audio/*
+backend/config/youtube_token.json
+
+# Node & Frontend
+frontend/node_modules/
+frontend/dist/
+.DS_Store
+*.log
