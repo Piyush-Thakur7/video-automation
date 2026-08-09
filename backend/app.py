@@ -150,17 +150,18 @@ def start_video_render(req: RenderRequest):
 
     def run_render_task():
         try:
+            full_script_text = " ".join([s.get("text", "") for s in req.script_data.get("scenes", [])])
+            audio_out = tts_engine.generate_speech(text=full_script_text, voice=req.voice_id)
             res = video_renderer.render_video(
                 job_id=job_id,
                 script_data=req.script_data,
-                voice_id=req.voice_id,
-                tts_engine=tts_engine,
-                asset_manager=asset_manager,
+                audio_data=audio_out,
                 progress_callback=update_job
             )
             rel_path = "/" + res["output_path"].replace("\\", "/")
             res["video_url"] = rel_path
             RENDER_JOBS[job_id]["output"] = res
+            RENDER_JOBS[job_id]["status"] = "completed"
         except Exception as err:
             RENDER_JOBS[job_id]["status"] = "failed"
             RENDER_JOBS[job_id]["error"] = str(err)
