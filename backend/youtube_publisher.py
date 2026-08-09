@@ -4,6 +4,7 @@ from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.oauth2.credentials import Credentials
+from google.auth.transport.requests import Request
 
 SCOPES = ['https://www.googleapis.com/auth/youtube.upload', 'https://www.googleapis.com/auth/youtube.readonly']
 
@@ -13,21 +14,31 @@ class YouTubePublisher:
         self.token_path = token_path
         os.makedirs("config", exist_ok=True)
 
-    def is_authenticated(self) -> bool:
-        if os.path.exists(self.token_path):
-            try:
-                creds = Credentials.from_authorized_user_file(self.token_path, SCOPES)
-                return creds and creds.valid
-            except Exception:
-                return False
-        return False
-
-    def get_channel_info(self) -> dict:
-        if not self.is_authenticated():
-            return {"authenticated": False, "channel": None}
+    def _get_credentials(self):
+        if not os.path.exists(self.token_path):
+            return None
 
         try:
             creds = Credentials.from_authorized_user_file(self.token_path, SCOPES)
+            if creds and creds.expired and creds.refresh_token:
+                creds.refresh(Request())
+                with open(self.token_path, 'w') as f:
+                    f.write(creds.to_json())
+            return creds
+        except Exception as e:
+            print(f"[YouTubePublisher] Credential error: {e}")
+            return None
+
+    def is_authenticated(self) -> bool:
+        creds = self._get_credentials()
+        return bool(creds and creds.valid)
+
+    def get_channel_info(self) -> dict:
+        creds = self._get_credentials()
+        if not creds or not creds.valid:
+            return {"authenticated": False, "channel": None}
+
+        try:
             youtube = build('youtube', 'v3', credentials=creds)
             res = youtube.channels().list(part="snippet,statistics", mine=True).execute()
             if res.get("items"):
@@ -48,6 +59,16 @@ class YouTubePublisher:
 
         return {"authenticated": False, "channel": None}
 
+    def save_client_secrets(self, secrets_dict: dict) -> bool:
+        """Saves Google OAuth2 client_secrets.json to config directory."""
+        try:
+            with open(self.credentials_path, 'w') as f:
+                json.dump(secrets_dict, f, indent=2)
+            return True
+        except Exception as e:
+            print(f"[YouTubePublisher] Error saving client secrets: {e}")
+            return False
+
     def upload_video(self, video_path: str, title: str, description: str, tags: list, category_id: str = "27", privacy_status: str = "private", notify_subscribers: bool = True) -> dict:
         """
         Uploads an MP4 video to YouTube channel using YouTube Data API v3.
@@ -56,16 +77,16 @@ class YouTubePublisher:
         if not os.path.exists(video_path):
             raise FileNotFoundError(f"Video file not found at {video_path}")
 
-        if not self.is_authenticated():
+        creds = self._get_credentials()
+        if not creds or not creds.valid:
             return {
                 "success": False,
-                "error": "YouTube Channel is not authenticated. Please configure client_secrets.json in settings.",
+                "error": "YouTube Channel is not authenticated. Please upload client_secrets.json in API & Credentials tab.",
                 "simulated": True,
                 "video_id": "simulated_yt_" + os.path.basename(video_path).rsplit(".", 1)[0]
             }
 
         try:
-            creds = Credentials.from_authorized_user_file(self.token_path, SCOPES)
             youtube = build('youtube', 'v3', credentials=creds)
 
             body = {
