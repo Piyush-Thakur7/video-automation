@@ -124,8 +124,10 @@ def start_video_render(req: RenderRequest):
     job_id = f"job_{uuid.uuid4().hex[:8]}"
 
     # Inject chosen BGM track into script_data if specified
-    if req.bgm_track:
+    if req.bgm_track and req.bgm_track != "auto":
         req.script_data["bg_music"] = req.bgm_track
+    else:
+        req.script_data["bg_music"] = script_gen.auto_select_bgm(req.script_data.get("topic", ""), req.script_data.get("niche", ""))
 
     RENDER_JOBS[job_id] = {
         "job_id": job_id,

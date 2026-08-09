@@ -176,6 +176,9 @@ class VideoRenderer:
         return out_clip
 
     def _get_or_create_bgm(self, bgm_name: str) -> str:
+        if not bgm_name or bgm_name == "auto" or not bgm_name.endswith(".mp3"):
+            bgm_name = "dark_suspense.mp3"
+
         bgm_dir = os.path.join(self.temp_dir, "bgm")
         os.makedirs(bgm_dir, exist_ok=True)
         target = os.path.join(bgm_dir, bgm_name)
@@ -184,7 +187,7 @@ class VideoRenderer:
             # Generate synth audio track if specific track missing
             cmd = [
                 "ffmpeg", "-y", "-f", "lavfi",
-                "-i", "aevalsrc=exprs='0.1*sin(2*PI*110*t)+0.08*sin(2*PI*164.8*t)':s=44100",
+                "-i", "aevalsrc=exprs='0.1*sin(2*3.14159*110*t)+0.08*sin(2*3.14159*164.8*t)':s=44100",
                 "-t", "60",
                 "-c:a", "libmp3lame", "-b:a", "192k",
                 target

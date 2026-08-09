@@ -13,7 +13,10 @@ const Youtube = ({ size = 24, color = "currentColor" }) => (
   </svg>
 );
 
-const API_BASE = 'http://127.0.0.1:8000/api';
+const RENDER_BACKEND = 'https://video-automation-7cvy.onrender.com/api';
+const LOCAL_BACKEND = 'http://127.0.0.1:8000/api';
+
+const API_BASE = localStorage.getItem('AUTOTUBE_API_BASE') || LOCAL_BACKEND;
 
 const BGM_TRACKS = [
   { id: "auto", name: "✨ Auto-Select Best AI BGM (Recommended)" },
