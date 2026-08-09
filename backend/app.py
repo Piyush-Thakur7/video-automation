@@ -237,6 +237,21 @@ def youtube_auth_callback(code: str):
         </html>
         """
 
+class SyncCredentialsRequest(BaseModel):
+    client_secrets_json: str = None
+    youtube_token_json: str = None
+
+@app.post("/api/sync/credentials")
+def sync_credentials_to_cloud(req: SyncCredentialsRequest):
+    os.makedirs("config", exist_ok=True)
+    if req.client_secrets_json:
+        with open("config/client_secrets.json", "w", encoding="utf-8") as f:
+            f.write(req.client_secrets_json)
+    if req.youtube_token_json:
+        with open("config/youtube_token.json", "w", encoding="utf-8") as f:
+            f.write(req.youtube_token_json)
+    return {"success": True, "message": "Credentials successfully synced to Cloud Engine!"}
+
 @app.post("/api/youtube/credentials")
 def save_youtube_credentials(client_secrets_json: str):
     try:

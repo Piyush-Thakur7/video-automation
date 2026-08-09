@@ -822,22 +822,43 @@ export default function App() {
 
               <div>
                 <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '8px' }}>YouTube OAuth Connection</label>
-                <button 
-                  className="btn-primary" 
-                  onClick={async () => {
-                    try {
-                      const res = await axios.get(`${API_BASE}/youtube/auth-url`);
-                      if (res.data.auth_url) {
-                        window.open(res.data.auth_url, '_blank');
+                <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                  <button 
+                    className="btn-primary" 
+                    onClick={async () => {
+                      try {
+                        const res = await axios.get(`${API_BASE}/youtube/auth-url`);
+                        if (res.data.auth_url) {
+                          window.open(res.data.auth_url, '_blank');
+                        }
+                      } catch (e) {
+                        alert(`Auth Error: ${e.response?.data?.detail || e.message}`);
                       }
-                    } catch (e) {
-                      alert(`Auth Error: ${e.response?.data?.detail || e.message}`);
-                    }
-                  }}
-                  style={{ background: 'linear-gradient(135deg, #ff0055, #8b5cf6)', borderColor: '#ff0055' }}
-                >
-                  <Youtube size={18} /> Authenticate & Link YouTube Channel
-                </button>
+                    }}
+                    style={{ background: 'linear-gradient(135deg, #ff0055, #8b5cf6)', borderColor: '#ff0055' }}
+                  >
+                    <Youtube size={18} /> Authenticate & Link YouTube Channel
+                  </button>
+
+                  <button 
+                    className="btn-secondary" 
+                    onClick={async () => {
+                      try {
+                        let secJson = clientSecretsInput;
+                        let tokJson = null;
+                        const renderRes = await axios.post(`${RENDER_BACKEND}/sync/credentials`, {
+                          client_secrets_json: secJson || undefined,
+                          youtube_token_json: tokJson || undefined
+                        });
+                        alert("✓ Render Cloud Engine Synced! 24/7 Auto-Pilot is ready to post when laptop is OFF.");
+                      } catch (e) {
+                        alert(`Cloud Sync: ${e.response?.data?.detail || e.message}`);
+                      }
+                    }}
+                  >
+                    ☁️ Sync Tokens to Render Cloud (24/7 Mode)
+                  </button>
+                </div>
                 <p style={{ fontSize: '0.75rem', color: ytStatus.authenticated ? '#34d399' : '#fbbf24', marginTop: '8px' }}>
                   {ytStatus.authenticated ? `✓ Connected to YouTube Channel: ${ytStatus.channel.title}` : '• client_secrets.json is loaded. Click button to complete Google Login.'}
                 </p>
