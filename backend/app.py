@@ -284,9 +284,7 @@ def _run_autonomous_job(niche: str, video_type: str, voice_id: str, privacy_stat
     res = video_renderer.render_video(
         job_id=job_id,
         script_data=script_data,
-        voice_id=voice_id,
-        tts_engine=tts_engine,
-        asset_manager=asset_manager
+        voice_id=voice_id
     )
     rel_url = "/" + res["output_path"].replace("\\", "/")
     
