@@ -36,8 +36,7 @@ class VideoRenderer:
             update_progress(pct, f"Processing scene {idx}/{total_scenes}: {scene.get('type')}")
 
             search_term = scene.get("search_term", "abstract cinematic")
-            media_info = asset_manager.get_scene_media(job_id, idx, search_term, is_shorts)
-            asset_path = media_info["asset_path"]
+            asset_path = asset_manager.fetch_scene_media(search_term=search_term, is_shorts=is_shorts, scene_idx=idx)
 
             spoken_text = scene.get("text", "")
             overlay_text = scene.get("overlay_text", "")
