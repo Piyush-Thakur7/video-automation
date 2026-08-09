@@ -95,9 +95,6 @@ class ScriptGenerator:
         self.api_key = api_key
 
     def auto_select_bgm(self, topic: str, niche: str) -> str:
-        """
-        AI Mood Engine: Analyzes topic sentiment and keywords to automatically pick the best matching background music track.
-        """
         t = topic.lower()
         if any(w in t for w in ["scary", "ghost", "horror", "murder", "creepy", "mystery", "dark", "haunted", "unsolved"]):
             return "scary_drone.mp3"
@@ -111,7 +108,7 @@ class ScriptGenerator:
             return "cinematic_epic.mp3"
         elif any(w in t for w in ["discipline", "success", "workout", "grind", "focus", "1%", "win", "rule", "life"]):
             return "triumphant_build.mp3"
-        elif any(w in t for w in ["fact", "curious", "bizarre", "ocean", "did you know", "science"]):
+        elif any(w in t for w in ["fact", "curious", "bizarre", "ocean", "did you know", "science", "anime"]):
             return "upbeat_cyber.mp3"
         
         niche_info = NICHE_TEMPLATES.get(niche)
@@ -119,10 +116,27 @@ class ScriptGenerator:
             return niche_info.get("bg_music", "tech_ambient.mp3")
         return "tech_ambient.mp3"
 
+    def _derive_visual_keywords(self, topic: str, niche: str) -> list:
+        t = topic.lower()
+        if any(w in t for w in ["anime", "manga", "japan", "naruto", "dragon ball", "goku"]):
+            return ["anime neon city", "tokyo street night lights", "manga drawing artistic", "japanese cyberpunk aesthetic", "cherry blossom dusk"]
+        elif any(w in t for w in ["food", "cook", "recipe", "kitchen", "chef", "saffron"]):
+            return ["gourmet dish preparation", "luxury kitchen chef cooking", "vibrant spices close up", "steaming hot food cinematic", "fresh organic ingredients"]
+        elif any(w in t for w in ["space", "galaxy", "nasa", "planet", "star", "cosmic"]):
+            return ["deep space galaxy nebula", "astronaut looking starry sky", "earth from orbit space", "glowing cosmic particles", "alien planet horizon"]
+        elif any(w in t for w in ["car", "speed", "supercar", "engine", "ferrari"]):
+            return ["supercar driving highway night", "sleek sports car neon studio", "engine roaring close up", "luxury vehicle cockpit", "speed motion blur city"]
+        elif any(w in t for w in ["crypto", "bitcoin", "blockchain", "trade"]):
+            return ["digital crypto currency network", "bitcoin golden coin glow", "stock market chart green", "future financial matrix", "holographic trading desk"]
+
+        niche_info = NICHE_TEMPLATES.get(niche, NICHE_TEMPLATES["custom_niche"])
+        base_keywords = list(niche_info["visual_keywords"])
+        topic_words = [w.lower() for w in topic.split() if len(w) > 3]
+        if topic_words:
+            base_keywords.insert(0, " ".join(topic_words[:2]) + " cinematic")
+        return base_keywords
+
     def generate_script(self, niche: str, topic: str = "", video_type: str = "shorts", tone: str = "dramatic") -> dict:
-        """
-        Generates a structured video script broken down into timed scenes with text, visual keywords, audio cues, and SEO.
-        """
         niche_info = NICHE_TEMPLATES.get(niche, NICHE_TEMPLATES["custom_niche"])
         
         if not topic.strip():
@@ -132,11 +146,7 @@ class ScriptGenerator:
                 topic = random.choice(niche_info["sample_topics"])
 
         auto_bgm = self.auto_select_bgm(topic, niche)
-
-        visual_keywords = list(niche_info["visual_keywords"])
-        topic_words = [w.lower() for w in topic.split() if len(w) > 3]
-        if topic_words:
-            visual_keywords.insert(0, " ".join(topic_words[:2]) + " cinematic")
+        visual_keywords = self._derive_visual_keywords(topic, niche)
 
         if video_type == "shorts":
             scenes = self._generate_shorts_scenes(niche, topic, tone, visual_keywords)
@@ -146,14 +156,14 @@ class ScriptGenerator:
         total_words = sum(len(s["text"].split()) for s in scenes)
         estimated_duration = round(total_words / 2.5, 1)
 
+        clean_topic_word = re.sub(r'[^a-zA-Z0-0]', '', topic.split()[0]).lower()
         tags = [
             f"#{niche.replace('_', '')}",
             f"#{video_type}",
             "#viral",
             "#facts",
             "#trending",
-            f"#{topic.split()[0].lower()}",
-            "#mindset",
+            f"#{clean_topic_word}",
             "#shorts" if video_type == "shorts" else "#youtube"
         ]
 
@@ -178,66 +188,80 @@ class ScriptGenerator:
         }
 
     def _generate_shorts_scenes(self, niche: str, topic: str, tone: str, visual_keywords: list) -> list:
-        scene_templates = [
-            {
-                "hook": f"Did you know about {topic}?",
-                "middle_1": "Most people ignore this critical sign until it's far too late.",
-                "middle_2": "When this happens, your brain automatically shifts into survival mode.",
-                "climax": "Pay close attention next time, because once you see it, you can never unsee it.",
-                "cta": "Follow for more secret insights every single day."
-            },
-            {
-                "hook": f"Here is the real truth about {topic}.",
-                "middle_1": "Experts discovered that 90% of people misunderstand how this works.",
-                "middle_2": "It functions by targeting your core instincts of curiosity and focus.",
-                "climax": "If you recognize this pattern in your life, take action immediately.",
-                "cta": "Subscribe now so you never miss another truth."
-            }
-        ]
+        t = topic.lower()
+        clean_topic = topic.strip().upper()
 
-        choice = random.choice(scene_templates)
+        if any(w in t for w in ["anime", "manga", "cartoon", "japan"]):
+            hook_text = f"Did you know these mind-blowing secrets about {topic}?"
+            rev_text = "Anime creators frequently hide secret codes and real-world history inside background frames."
+            deep_text = "From record-breaking animation budgets to easter eggs, every single detail is crafted with intense precision."
+            climax_text = "Once you learn these hidden facts, you will watch your favorite series in a completely new light."
+            cta_text = "Subscribe now for daily anime facts and breakdown insights!"
+        elif any(w in t for w in ["food", "cook", "saffron", "kitchen", "recipe"]):
+            hook_text = f"Here is the incredible story behind {topic}."
+            rev_text = "Master chefs use precise temperature science that completely transforms flavor profiles."
+            deep_text = "A single gram of rare ingredients requires hundreds of hours of delicate hand harvesting."
+            climax_text = "Respect the art behind every dish, because true culinary perfection is pure science."
+            cta_text = "Follow for daily gourmet food secrets and cooking breakdowns!"
+        elif any(w in t for w in ["fact", "curious", "bizarre", "science", "ocean", "space"]):
+            hook_text = f"Here are bizarre facts about {topic} that sound completely fake."
+            rev_text = "Scientists discovered that fundamental natural laws behave unexpectedly under extreme conditions."
+            deep_text = "What seems like science fiction is actually documented physical reality observed by researchers."
+            climax_text = "The universe is far stranger than human imagination could ever predict."
+            cta_text = "Subscribe for daily mind-bending science and curiosity facts!"
+        elif niche == "dark_psychology" and not any(w in t for w in ["anime", "fact", "food", "cook", "tech", "money"]):
+            hook_text = f"Did you know the psychological secret behind {topic}?"
+            rev_text = "Most people ignore subtle behavioral cues until someone exploits them."
+            deep_text = "Subconscious body language triggers automatic responses before your rational mind even reacts."
+            climax_text = "Recognize these psychological patterns so you stay in total control of every conversation."
+            cta_text = "Subscribe for daily psychological insights and mental protection!"
+        else:
+            hook_text = f"Did you know the incredible truth about {topic}?"
+            rev_text = f"Experts confirm that {topic} holds key insights most people never discover."
+            deep_text = "When you look beneath the surface, the underlying mechanics become instantly clear."
+            climax_text = "Understanding this principle gives you a massive advantage in understanding how things really work."
+            cta_text = "Subscribe now for daily deep dives and viral knowledge!"
+
         visuals = visual_keywords * 2
         random.shuffle(visuals)
-
-        clean_topic = topic.replace("Did you know about", "").replace("Here is the real truth about", "").strip().upper()
 
         scenes = [
             {
                 "scene_number": 1,
                 "type": "Hook",
-                "text": choice["hook"],
-                "visual_prompt": f"{visuals[0]}, dramatic eye contact, cinematic dark atmosphere, high contrast",
+                "text": hook_text,
+                "visual_prompt": f"{visuals[0]}, 4k cinematic lighting, vivid colors",
                 "search_term": visuals[0],
-                "overlay_text": clean_topic[:30] if len(clean_topic) > 5 else "LISTEN CLOSELY"
+                "overlay_text": clean_topic[:30] if len(clean_topic) > 5 else "MUST WATCH"
             },
             {
                 "scene_number": 2,
                 "type": "Revelation",
-                "text": choice["middle_1"],
-                "visual_prompt": f"{visuals[1]}, intense close-up, dramatic neon lighting, suspense",
+                "text": rev_text,
+                "visual_prompt": f"{visuals[1]}, intense close-up, dramatic lighting, high contrast",
                 "search_term": visuals[1],
                 "overlay_text": "THE REVELATION"
             },
             {
                 "scene_number": 3,
                 "type": "Deep Dive",
-                "text": choice["middle_2"],
-                "visual_prompt": f"{visuals[2]}, slow motion motion blur, high tech futuristic mood",
+                "text": deep_text,
+                "visual_prompt": f"{visuals[2]}, slow motion motion blur, artistic mood",
                 "search_term": visuals[2],
                 "overlay_text": "LOOK CLOSER"
             },
             {
                 "scene_number": 4,
                 "type": "Climax",
-                "text": choice["climax"],
+                "text": climax_text,
                 "visual_prompt": f"{visuals[3]}, sudden dramatic movement, epic lighting, sharp focus",
                 "search_term": visuals[3],
-                "overlay_text": "NEVER IGNORE THIS"
+                "overlay_text": "THE TRUTH REVEALED"
             },
             {
                 "scene_number": 5,
                 "type": "CTA",
-                "text": choice["cta"],
+                "text": cta_text,
                 "visual_prompt": f"{visuals[4]}, inspiring dramatic view, glowing light beam",
                 "search_term": visuals[4],
                 "overlay_text": "SUBSCRIBE FOR MORE"
@@ -251,14 +275,14 @@ class ScriptGenerator:
         random.shuffle(visuals)
 
         parts = [
-            ("Introduction Hook", f"Welcome back. Today we are diving deep into {topic}. What you are about to learn has been kept out of mainstream awareness for decades."),
-            ("Context & Background", "To understand why this matters, we must look at how human perception really works under pressure."),
-            ("Core Principle 1", "First, notice how subtle shifts in environment completely change human decision making. Small cues trigger massive behavioral changes."),
-            ("Core Principle 2", "Second, the brain prioritizes immediate familiarity over truth. This creates blind spots that can be easily exploited."),
-            ("Case Study / Example", "Consider what happens when individuals are exposed to continuous subtle influence without realizing it."),
-            ("Key Takeaway", "The takeaway is simple: awareness is your ultimate shield. Once you recognize these mechanisms, you become immune to them."),
-            ("Actionable Strategy", "Start observing your surroundings with detached curiosity. Test this principle in your next interaction."),
-            ("Conclusion & Call to Action", f"If this breakdown on {topic} brought you value, leave a like and subscribe for more deep dives. Drop your thoughts in the comments below!")
+            ("Introduction Hook", f"Welcome back. Today we are exploring {topic} in full detail."),
+            ("Context & Background", f"To understand {topic}, we must look at the foundational principles that drive it."),
+            ("Core Principle 1", "First, notice how subtle elements interact to create powerful overall effects."),
+            ("Core Principle 2", "Second, key patterns emerge when you analyze the data carefully over time."),
+            ("Case Study / Example", f"Consider real-world applications where {topic} altered outcomes completely."),
+            ("Key Takeaway", "The takeaway is clear: deeper understanding yields far greater appreciation and results."),
+            ("Actionable Strategy", "Apply these insights today to sharpen your knowledge and perspective."),
+            ("Conclusion & Call to Action", f"If this breakdown on {topic} brought you value, leave a like and subscribe for more deep dives!")
         ]
 
         for idx, (title, text) in enumerate(parts, 1):

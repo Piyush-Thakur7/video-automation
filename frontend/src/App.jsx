@@ -160,8 +160,9 @@ export default function App() {
     setIsGeneratingScript(true);
     setRenderedResult(null);
     try {
+      const targetNiche = topicInput.trim() ? 'custom_niche' : selectedNiche;
       const res = await axios.post(`${API_BASE}/script/generate`, {
-        niche: selectedNiche,
+        niche: targetNiche,
         topic: topicInput,
         video_type: videoType
       });
@@ -495,7 +496,12 @@ export default function App() {
                     className="input-field" 
                     placeholder={selectedNiche === 'custom_niche' ? 'e.g. Saffron Secrets, Black Hole Gravity, Stoic Rules...' : 'e.g. Unspoken Signs of Manipulation'} 
                     value={topicInput} 
-                    onChange={(e) => setTopicInput(e.target.value)}
+                    onChange={(e) => {
+                      setTopicInput(e.target.value);
+                      if (e.target.value.trim().length > 0) {
+                        setSelectedNiche('custom_niche');
+                      }
+                    }}
                     style={{ borderColor: selectedNiche === 'custom_niche' ? '#ff0055' : 'var(--border-color)' }}
                   />
                 </div>
