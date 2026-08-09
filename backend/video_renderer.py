@@ -15,6 +15,20 @@ class VideoRenderer:
         os.makedirs(self.temp_dir, exist_ok=True)
         os.makedirs(self.bgm_dir, exist_ok=True)
 
+    def _get_font_path(self) -> str:
+        """Cross-platform font file finder for Windows, macOS, and Linux cloud environments (Render)."""
+        possible_paths = [
+            "C:\\Windows\\Fonts\\arialbd.ttf",
+            "C:\\Windows\\Fonts\\arial.ttf",
+            "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+            "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf",
+            "/usr/share/fonts/truetype/freefont/FreeSansBold.ttf"
+        ]
+        for p in possible_paths:
+            if os.path.exists(p):
+                return p.replace("\\", "/").replace(":", "\\:")
+        return ""
+
     def render_video(self, job_id: str, script_data: dict, voice_id: str = "en-US-ChristopherNeural", progress_callback=None) -> dict:
         """
         Renders a full 1080p MP4 video with PER-SCENE TTS audio (no repeating voice), synced subtitles, and ambient BGM.
@@ -112,6 +126,18 @@ class VideoRenderer:
             print(f"[VideoRenderer] BGM mixing fallback: {e}")
             shutil.copy(raw_concat_video, final_output_path)
 
+        # Clean up temporary clip files after successful render to prevent disk bloat
+        try:
+            for clip in scene_clips:
+                if os.path.exists(clip):
+                    os.remove(clip)
+            if os.path.exists(raw_concat_video):
+                os.remove(raw_concat_video)
+            if os.path.exists(concat_list_path):
+                os.remove(concat_list_path)
+        except Exception as cleanup_err:
+            print(f"[VideoRenderer] Cleanup notice: {cleanup_err}")
+
         update_progress(100.0, "Video rendering complete!")
 
         return {
@@ -159,12 +185,13 @@ class VideoRenderer:
         # Format spoken script text into clean 2-3 line viral subtitles
         formatted_subtitle = self._wrap_text(spoken_text, max_chars=24 if is_shorts else 40)
         escaped_subtitle = formatted_subtitle.replace(":", "\\:").replace("'", "").replace('"', "")
-        font_path = "C\\:/Windows/Fonts/arialbd.ttf"
+        font_path = self._get_font_path()
+        font_param = f":fontfile='{font_path}'" if font_path else ""
         
         font_size = 46 if is_shorts else 36
         y_pos = "(h-h/3.2)" if is_shorts else "(h-h/4.5)"
 
-        drawtext_filter = f"drawtext=fontfile='{font_path}':text='{escaped_subtitle}':fontcolor=yellow:fontsize={font_size}:x=(w-text_w)/2:y={y_pos}:box=1:boxcolor=black@0.75:boxborderw=14:line_spacing=10"
+        drawtext_filter = f"drawtext=text='{escaped_subtitle}'{font_param}:fontcolor=yellow:fontsize={font_size}:x=(w-text_w)/2:y={y_pos}:box=1:boxcolor=black@0.75:boxborderw=14:line_spacing=10"
 
         if is_video:
             filter_str = f"[0:v]scale={res_w}:{res_h}:force_original_aspect_ratio=increase,crop={res_w}:{res_h},{drawtext_filter}[v]"
