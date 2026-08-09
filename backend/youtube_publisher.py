@@ -59,18 +59,38 @@ class YouTubePublisher:
 
         return {"authenticated": False, "channel": None}
 
-    def authenticate_interactive(self) -> dict:
+    def get_auth_url(self, redirect_uri: str = "http://127.0.0.1:8000/api/youtube/callback") -> str:
         if not os.path.exists(self.credentials_path):
-            return {"authenticated": False, "error": "client_secrets.json is missing in config/"}
-
+            return None
         try:
-            flow = InstalledAppFlow.from_client_secrets_file(self.credentials_path, SCOPES)
-            creds = flow.run_local_server(port=0, prompt="consent")
+            flow = InstalledAppFlow.from_client_secrets_file(
+                self.credentials_path, 
+                SCOPES, 
+                redirect_uri=redirect_uri
+            )
+            auth_url, _ = flow.authorization_url(prompt='consent', access_type='offline', include_granted_scopes='true')
+            return auth_url
+        except Exception as e:
+            print(f"[YouTubePublisher] Error generating auth URL: {e}")
+            return None
+
+    def exchange_code(self, code: str, redirect_uri: str = "http://127.0.0.1:8000/api/youtube/callback") -> bool:
+        if not os.path.exists(self.credentials_path):
+            return False
+        try:
+            flow = InstalledAppFlow.from_client_secrets_file(
+                self.credentials_path, 
+                SCOPES, 
+                redirect_uri=redirect_uri
+            )
+            flow.fetch_token(code=code)
+            creds = flow.credentials
             with open(self.token_path, 'w') as f:
                 f.write(creds.to_json())
-            return self.get_channel_info()
+            return True
         except Exception as e:
-            return {"authenticated": False, "error": str(e)}
+            print(f"[YouTubePublisher] Error exchanging code: {e}")
+            return False
 
     def save_client_secrets(self, secrets_dict: dict) -> bool:
         """Saves Google OAuth2 client_secrets.json to config directory."""

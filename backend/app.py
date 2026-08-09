@@ -4,6 +4,7 @@ import uuid
 import asyncio
 import threading
 from fastapi import FastAPI, BackgroundTasks, HTTPException, UploadFile, File
+from fastapi.responses import HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
@@ -204,9 +205,38 @@ def get_video_library():
 def get_youtube_status():
     return youtube_publisher.get_channel_info()
 
-@app.post("/api/youtube/auth")
-def trigger_youtube_auth():
-    return youtube_publisher.authenticate_interactive()
+@app.get("/api/youtube/auth-url")
+def get_youtube_auth_url():
+    auth_url = youtube_publisher.get_auth_url()
+    if not auth_url:
+        raise HTTPException(status_code=400, detail="client_secrets.json is missing in config/")
+    return {"auth_url": auth_url}
+
+@app.get("/api/youtube/callback", response_class=HTMLResponse)
+def youtube_auth_callback(code: str):
+    success = youtube_publisher.exchange_code(code)
+    if success:
+        info = youtube_publisher.get_channel_info()
+        ch_title = info.get("channel", {}).get("title", "Your Channel")
+        return f"""
+        <html>
+            <body style="font-family: sans-serif; background: #0f172a; color: #fff; text-align: center; padding-top: 50px;">
+                <h1 style="color: #34d399;">✓ YouTube Channel Connected!</h1>
+                <h2>Connected to: {ch_title}</h2>
+                <p>Your OAuth token has been saved to config/youtube_token.json.</p>
+                <p>You can close this tab and return to AutoTube AI Studio!</p>
+            </body>
+        </html>
+        """
+    else:
+        return """
+        <html>
+            <body style="font-family: sans-serif; background: #0f172a; color: #fff; text-align: center; padding-top: 50px;">
+                <h1 style="color: #ff0055;">OAuth Error</h1>
+                <p>Failed to exchange authorization code for access token.</p>
+            </body>
+        </html>
+        """
 
 @app.post("/api/youtube/credentials")
 def save_youtube_credentials(client_secrets_json: str):

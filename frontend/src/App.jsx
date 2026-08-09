@@ -826,13 +826,9 @@ export default function App() {
                   className="btn-primary" 
                   onClick={async () => {
                     try {
-                      alert("Opening Google Login window... Please complete Google sign-in in your browser.");
-                      const res = await axios.post(`${API_BASE}/youtube/auth`);
-                      if (res.data.authenticated) {
-                        alert(`YouTube Channel Connected! Channel: ${res.data.channel.title}`);
-                        fetchYtStatus();
-                      } else {
-                        alert(`Auth failed: ${res.data.error || 'Unknown error'}`);
+                      const res = await axios.get(`${API_BASE}/youtube/auth-url`);
+                      if (res.data.auth_url) {
+                        window.open(res.data.auth_url, '_blank');
                       }
                     } catch (e) {
                       alert(`Auth Error: ${e.response?.data?.detail || e.message}`);
