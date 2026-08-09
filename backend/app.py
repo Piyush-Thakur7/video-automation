@@ -150,12 +150,10 @@ def start_video_render(req: RenderRequest):
 
     def run_render_task():
         try:
-            full_script_text = " ".join([s.get("text", "") for s in req.script_data.get("scenes", [])])
-            audio_out = tts_engine.generate_speech(text=full_script_text, voice=req.voice_id)
             res = video_renderer.render_video(
                 job_id=job_id,
                 script_data=req.script_data,
-                audio_data=audio_out,
+                voice_id=req.voice_id,
                 progress_callback=update_job
             )
             rel_path = "/" + res["output_path"].replace("\\", "/")
