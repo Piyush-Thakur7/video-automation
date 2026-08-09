@@ -478,12 +478,26 @@ export default function App() {
             </header>
 
             <div className="glass-card" style={{ padding: '24px', marginBottom: '28px' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px', marginBottom: '16px' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '8px' }}>Niche Preset</label>
                   <select className="select-field" value={selectedNiche} onChange={(e) => setSelectedNiche(e.target.value)}>
                     {niches.map(n => <option key={n.key} value={n.key}>{n.name}</option>)}
                   </select>
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '8px' }}>
+                    {selectedNiche === 'custom_niche' ? '✨ Custom Niche / Topic (Type Anything)' : 'Topic / Key Subject (Optional)'}
+                  </label>
+                  <input 
+                    type="text" 
+                    className="input-field" 
+                    placeholder={selectedNiche === 'custom_niche' ? 'e.g. Saffron Secrets, Black Hole Gravity, Stoic Rules...' : 'e.g. Unspoken Signs of Manipulation'} 
+                    value={topicInput} 
+                    onChange={(e) => setTopicInput(e.target.value)}
+                    style={{ borderColor: selectedNiche === 'custom_niche' ? '#ff0055' : 'var(--border-color)' }}
+                  />
                 </div>
 
                 <div>
