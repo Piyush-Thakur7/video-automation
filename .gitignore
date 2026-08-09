@@ -6,7 +6,7 @@ __pycache__/
 backend/storage/renders/*.mp4
 backend/storage/temp/*
 backend/storage/audio/*
-backend/config/youtube_token.json
+backend/config/*.json
 
 # Node & Frontend
 frontend/node_modules/

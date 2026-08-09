@@ -59,6 +59,19 @@ class YouTubePublisher:
 
         return {"authenticated": False, "channel": None}
 
+    def authenticate_interactive(self) -> dict:
+        if not os.path.exists(self.credentials_path):
+            return {"authenticated": False, "error": "client_secrets.json is missing in config/"}
+
+        try:
+            flow = InstalledAppFlow.from_client_secrets_file(self.credentials_path, SCOPES)
+            creds = flow.run_local_server(port=0, prompt="consent")
+            with open(self.token_path, 'w') as f:
+                f.write(creds.to_json())
+            return self.get_channel_info()
+        except Exception as e:
+            return {"authenticated": False, "error": str(e)}
+
     def save_client_secrets(self, secrets_dict: dict) -> bool:
         """Saves Google OAuth2 client_secrets.json to config directory."""
         try:

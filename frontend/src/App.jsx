@@ -821,6 +821,33 @@ export default function App() {
               </div>
 
               <div>
+                <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '8px' }}>YouTube OAuth Connection</label>
+                <button 
+                  className="btn-primary" 
+                  onClick={async () => {
+                    try {
+                      alert("Opening Google Login window... Please complete Google sign-in in your browser.");
+                      const res = await axios.post(`${API_BASE}/youtube/auth`);
+                      if (res.data.authenticated) {
+                        alert(`YouTube Channel Connected! Channel: ${res.data.channel.title}`);
+                        fetchYtStatus();
+                      } else {
+                        alert(`Auth failed: ${res.data.error || 'Unknown error'}`);
+                      }
+                    } catch (e) {
+                      alert(`Auth Error: ${e.response?.data?.detail || e.message}`);
+                    }
+                  }}
+                  style={{ background: 'linear-gradient(135deg, #ff0055, #8b5cf6)', borderColor: '#ff0055' }}
+                >
+                  <Youtube size={18} /> Authenticate & Link YouTube Channel
+                </button>
+                <p style={{ fontSize: '0.75rem', color: ytStatus.authenticated ? '#34d399' : '#fbbf24', marginTop: '8px' }}>
+                  {ytStatus.authenticated ? `✓ Connected to YouTube Channel: ${ytStatus.channel.title}` : '• client_secrets.json is loaded. Click button to complete Google Login.'}
+                </p>
+              </div>
+
+              <div>
                 <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '8px' }}>YouTube OAuth client_secrets.json (Paste Content)</label>
                 <textarea
                   className="textarea-field"

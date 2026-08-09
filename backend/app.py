@@ -204,6 +204,10 @@ def get_video_library():
 def get_youtube_status():
     return youtube_publisher.get_channel_info()
 
+@app.post("/api/youtube/auth")
+def trigger_youtube_auth():
+    return youtube_publisher.authenticate_interactive()
+
 @app.post("/api/youtube/credentials")
 def save_youtube_credentials(client_secrets_json: str):
     try:
