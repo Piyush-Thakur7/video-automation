@@ -1,82 +1,77 @@
 import os
-import time
-import json
-import subprocess
 import shutil
-from PIL import Image, ImageDraw, ImageFont
+import subprocess
+import uuid
+from asset_manager import asset_manager
+from script_generator import script_gen
 
 class VideoRenderer:
     def __init__(self, output_dir: str = "storage/renders", temp_dir: str = "storage/temp"):
         self.output_dir = output_dir
         self.temp_dir = temp_dir
-        os.makedirs(output_dir, exist_ok=True)
-        os.makedirs(temp_dir, exist_ok=True)
+        os.makedirs(self.output_dir, exist_ok=True)
+        os.makedirs(self.temp_dir, exist_ok=True)
 
-    def render_video(self, job_id: str, script_data: dict, voice_id: str, tts_engine, asset_manager, progress_callback=None) -> dict:
+    def render_video(self, job_id: str, script_data: dict, audio_data: dict, progress_callback=None) -> dict:
         """
-        Renders complete video (Shorts 9:16 or Longform 16:9) with TTS audio, stock visuals, dynamic subtitles, and BGM.
+        Renders a full 1080p MP4 video with synced spoken subtitles, Ken Burns motion effects, and ambient background music.
         """
-        def update_progress(percent: float, message: str):
-            print(f"[{job_id}] [{percent}%] {message}")
+        def update_progress(pct: float, msg: str):
             if progress_callback:
-                progress_callback(job_id, percent, message)
+                progress_callback(job_id, pct, msg)
 
         update_progress(5.0, "Synthesizing voiceover and generating timestamps...")
 
-        is_shorts = script_data.get("video_type") == "shorts"
+        is_shorts = script_data.get("video_type", "shorts") == "shorts"
         res_w, res_h = (1080, 1920) if is_shorts else (1920, 1080)
 
         scenes = script_data.get("scenes", [])
-        scene_files = []
-        concat_list_path = os.path.join(self.temp_dir, f"{job_id}_concat.txt")
-
         total_scenes = len(scenes)
-        scene_audio_paths = []
 
-        for idx, scene in enumerate(scenes):
-            scene_num = idx + 1
-            scene_pct = 10.0 + (idx / total_scenes) * 45.0
-            update_progress(round(scene_pct, 1), f"Processing scene {scene_num}/{total_scenes}: {scene['type']}")
+        scene_clips = []
+        full_audio_path = audio_data.get("audio_path")
 
-            # Generate TTS audio for this scene
-            tts_res = tts_engine.generate_speech(
-                text=scene["text"],
-                voice=voice_id,
-                output_path=os.path.join(self.temp_dir, f"{job_id}_scene_{scene_num}.mp3")
-            )
-            audio_path = tts_res["audio_path"]
-            scene_audio_paths.append(audio_path)
+        for idx, scene in enumerate(scenes, 1):
+            pct = 10.0 + (idx / total_scenes) * 50.0
+            update_progress(pct, f"Processing scene {idx}/{total_scenes}: {scene.get('type')}")
 
-            audio_duration = self._get_media_duration(audio_path)
-
-            # Fetch visual asset (video or image)
             search_term = scene.get("search_term", "abstract cinematic")
-            asset_path = asset_manager.fetch_scene_media(search_term, is_shorts=is_shorts, scene_idx=scene_num)
+            media_info = asset_manager.get_scene_media(job_id, idx, search_term, is_shorts)
+            asset_path = media_info["asset_path"]
 
-            # Create dynamic scene clip (standardized duration, motion zoom, subtitles)
-            scene_video = self._create_scene_clip(
+            spoken_text = scene.get("text", "")
+            overlay_text = scene.get("overlay_text", "")
+
+            # Segment full audio by estimated scene duration
+            scene_duration = round(len(spoken_text.split()) / 2.5, 1)
+            if scene_duration < 2.5:
+                scene_duration = 2.5
+
+            clip_path = self._create_scene_clip(
                 job_id=job_id,
-                scene_num=scene_num,
+                scene_num=idx,
                 asset_path=asset_path,
-                audio_path=audio_path,
-                duration=audio_duration,
+                audio_path=full_audio_path,
+                duration=scene_duration,
                 res_w=res_w,
                 res_h=res_h,
-                overlay_text=scene.get("overlay_text", ""),
+                spoken_text=spoken_text,
+                overlay_text=overlay_text,
                 is_shorts=is_shorts
             )
-            scene_files.append(scene_video)
+            scene_clips.append(clip_path)
 
         update_progress(60.0, "Concatenating scene clips...")
-        
+
+        # Concat video clips
+        concat_list_path = os.path.join(self.temp_dir, f"{job_id}_concat.txt")
         with open(concat_list_path, "w", encoding="utf-8") as f:
-            for s_file in scene_files:
-                abs_path = os.path.abspath(s_file).replace("\\", "/")
-                f.write(f"file '{abs_path}'\n")
+            for c_file in scene_clips:
+                clean_path = os.path.abspath(c_file).replace("\\", "/")
+                f.write(f"file '{clean_path}'\n")
 
-        raw_concat_video = os.path.join(self.temp_dir, f"{job_id}_raw_concat.mp4")
+        raw_concat_video = os.path.join(self.temp_dir, f"{job_id}_raw.mp4")
 
-        # FFmpeg concat command
         concat_cmd = [
             "ffmpeg", "-y", "-f", "concat", "-safe", "0",
             "-i", concat_list_path,
@@ -91,13 +86,17 @@ class VideoRenderer:
         final_output_path = os.path.join(self.output_dir, f"{job_id}_{script_data.get('video_type', 'shorts')}.mp4")
 
         # Mix background music
-        bgm_path = self._get_or_create_bgm(script_data.get("bg_music", "tech_ambient.mp3"))
+        bgm_track_name = script_data.get("bg_music", "auto")
+        if bgm_track_name == "auto":
+            bgm_track_name = script_gen.auto_select_bgm(script_data.get("topic", ""), script_data.get("niche", ""))
+
+        bgm_path = self._get_or_create_bgm(bgm_track_name)
 
         mix_cmd = [
             "ffmpeg", "-y",
             "-i", raw_concat_video,
             "-stream_loop", "-1", "-i", bgm_path,
-            "-filter_complex", "[1:a]volume=0.25[bgm];[0:a][bgm]amix=inputs=2:duration=first[aout]",
+            "-filter_complex", "[1:a]volume=0.45[bgm];[0:a][bgm]amix=inputs=2:duration=first[aout]",
             "-map", "0:v", "-map", "[aout]",
             "-c:v", "copy", "-c:a", "aac", "-b:a", "192k",
             "-shortest",
@@ -106,7 +105,8 @@ class VideoRenderer:
         
         try:
             subprocess.run(mix_cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        except Exception:
+        except Exception as e:
+            print(f"[VideoRenderer] Audio mixing fallback: {e}")
             shutil.copy(raw_concat_video, final_output_path)
 
         update_progress(100.0, "Video rendering complete!")
@@ -119,30 +119,36 @@ class VideoRenderer:
             "resolution": f"{res_w}x{res_h}"
         }
 
-    def _get_media_duration(self, file_path: str) -> float:
-        cmd = [
-            "ffprobe", "-v", "error",
-            "-show_entries", "format=duration",
-            "-of", "default=noprint_wrappers=1:nokey=1",
-            file_path
-        ]
-        res = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-        try:
-            return float(res.stdout.strip())
-        except Exception:
-            return 5.0
+    def _wrap_text(self, text: str, max_chars: int = 30) -> str:
+        words = text.split()
+        lines = []
+        curr = []
+        curr_len = 0
+        for w in words:
+            if curr_len + len(w) + 1 > max_chars:
+                lines.append(" ".join(curr))
+                curr = [w]
+                curr_len = len(w)
+            else:
+                curr.append(w)
+                curr_len += len(w) + 1
+        if curr:
+            lines.append(" ".join(curr))
+        return "\n".join(lines)
 
-    def _create_scene_clip(self, job_id: str, scene_num: int, asset_path: str, audio_path: str, duration: float, res_w: int, res_h: int, overlay_text: str, is_shorts: bool) -> str:
+    def _create_scene_clip(self, job_id: str, scene_num: int, asset_path: str, audio_path: str, duration: float, res_w: int, res_h: int, spoken_text: str, overlay_text: str, is_shorts: bool) -> str:
         out_clip = os.path.join(self.temp_dir, f"{job_id}_clip_{scene_num}.mp4")
         is_video = asset_path.endswith(".mp4")
 
-        escaped_overlay = overlay_text.replace(":", "\\:").replace("'", "").replace('"', "")
+        # Format spoken script text for subtitles
+        formatted_subtitle = self._wrap_text(spoken_text, max_chars=28 if is_shorts else 45)
+        escaped_subtitle = formatted_subtitle.replace(":", "\\:").replace("'", "").replace('"', "")
         font_path = "C\\:/Windows/Fonts/arialbd.ttf"
         
-        font_size = 48 if is_shorts else 38
-        y_pos = "(h-h/4)" if is_shorts else "(h-h/6)"
+        font_size = 46 if is_shorts else 36
+        y_pos = "(h-h/3.5)" if is_shorts else "(h-h/5)"
 
-        drawtext_filter = f"drawtext=fontfile='{font_path}':text='{escaped_overlay}':fontcolor=yellow:fontsize={font_size}:x=(w-text_w)/2:y={y_pos}:box=1:boxcolor=black@0.7:boxborderw=12"
+        drawtext_filter = f"drawtext=fontfile='{font_path}':text='{escaped_subtitle}':fontcolor=yellow:fontsize={font_size}:x=(w-text_w)/2:y={y_pos}:box=1:boxcolor=black@0.75:boxborderw=14:line_spacing=10"
 
         if is_video:
             filter_str = f"[0:v]scale={res_w}:{res_h}:force_original_aspect_ratio=increase,crop={res_w}:{res_h},{drawtext_filter}[v]"
@@ -158,7 +164,6 @@ class VideoRenderer:
                 out_clip
             ]
         else:
-            # Ken Burns camera zoom/pan motion for dynamic moving video
             filter_str = f"[0:v]scale={res_w*2}:{res_h*2}:force_original_aspect_ratio=increase,crop={res_w*2}:{res_h*2},zoompan=z='min(zoom+0.0015,1.25)':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=125:fps=30:s={res_w}x{res_h},{drawtext_filter}[v]"
             cmd = [
                 "ffmpeg", "-y",
@@ -177,18 +182,19 @@ class VideoRenderer:
 
     def _get_or_create_bgm(self, bgm_name: str) -> str:
         if not bgm_name or bgm_name == "auto" or not bgm_name.endswith(".mp3"):
-            bgm_name = "dark_suspense.mp3"
+            bgm_name = "tech_ambient.mp3"
 
         bgm_dir = os.path.join(self.temp_dir, "bgm")
         os.makedirs(bgm_dir, exist_ok=True)
         target = os.path.join(bgm_dir, bgm_name)
 
         if not os.path.exists(target):
-            # Generate synth audio track if specific track missing
+            # Rich harmonic ambient soundscape with warm chord progression
+            synth_expr = "0.35*sin(2*3.14159*130.81*t)+0.28*sin(2*3.14159*164.81*t)+0.22*sin(2*3.14159*196.00*t)+0.18*sin(2*3.14159*261.63*t)"
             cmd = [
                 "ffmpeg", "-y", "-f", "lavfi",
-                "-i", "aevalsrc=exprs='0.1*sin(2*3.14159*110*t)+0.08*sin(2*3.14159*164.8*t)':s=44100",
-                "-t", "60",
+                "-i", f"aevalsrc=exprs='{synth_expr}':s=44100",
+                "-t", "90",
                 "-c:a", "libmp3lame", "-b:a", "192k",
                 target
             ]
