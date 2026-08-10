@@ -6,51 +6,51 @@ NICHE_TEMPLATES = {
     "dark_psychology": {
         "name": "Dark Psychology & Manipulation",
         "bg_music": "dark_suspense.mp3",
-        "visual_keywords": ["mysterious shadow", "rainy city street light", "dramatic lighting silhouette", "dark fog neon", "psychological noir"],
+        "visual_keywords": ["mysterious shadow silhouette", "rainy city street night lights", "dramatic cinematic lighting", "dark fog neon glow", "psychological thriller noir"],
         "sample_topics": [
             "3 Unspoken Signs Someone is Trying to Manipulate You",
-            "The Power of Silence in Arguments",
+            "The Power of Silence in High Stakes Arguments",
             "Why Narcissists Never Change Their Behavior",
-            "How People Read Your Body Language Instantly"
+            "How People Read Your Micro Expressions Instantly"
         ]
     },
     "facts_curiosities": {
         "name": "Mind-Blowing Facts & Curiosities",
         "bg_music": "upbeat_cyber.mp3",
-        "visual_keywords": ["cosmic nebula", "deep sea creature glowing", "ancient temple ruins", "futuristic tech particles", "galaxy starry sky"],
+        "visual_keywords": ["cosmic nebula starry sky", "deep sea glowing creature", "ancient temple ruins sunset", "futuristic tech particles", "galaxy cosmic horizon"],
         "sample_topics": [
-            "5 Things You Didn't Know About Space",
-            "Bizarre Historical Events That Sound Fake",
-            "Unbelievable Ocean Secrets Deep Below",
-            "Mind-Bending Science Facts You Weren't Taught"
+            "Unbelievable Facts About Dogs You Never Knew",
+            "5 Things You Didn't Know About Deep Space",
+            "Bizarre Historical Events That Sound Completely Fake",
+            "Mind-Bending Science Facts You Weren't Taught in School"
         ]
     },
     "tech_ai": {
         "name": "Tech Breakthroughs & AI News",
         "bg_music": "tech_ambient.mp3",
-        "visual_keywords": ["cyberpunk server room", "digital brain network", "robot humanoid interface", "holographic matrix data", "future smart city"],
+        "visual_keywords": ["cyberpunk server room data", "digital brain neural network", "robot humanoid interface", "holographic matrix data stream", "future smart city skyline"],
         "sample_topics": [
             "AI Tools That Will Change Everything in 2026",
             "The Dark Side of Artificial Superintelligence",
-            "How Quantum Computing Will Shatter Encryption",
-            "The Future of Humanoid Robots in Daily Life"
+            "How Quantum Computing Will Shatter Modern Encryption",
+            "The Future of Humanoid Autonomous Robots"
         ]
     },
     "finance_business": {
         "name": "Wealth Secrets & Money Mindset",
         "bg_music": "inspiring_modern.mp3",
-        "visual_keywords": ["luxury skyscraper view", "stock market chart lines", "golden hour city sky line", "private jet runway", "vault money counter"],
+        "visual_keywords": ["luxury skyscraper window view", "stock market chart green lines", "golden hour city skyline", "private jet runway dusk", "vault money stack counter"],
         "sample_topics": [
             "How the Top 1% Build Generational Wealth",
-            "The Invisible Trap Keeping Most People Broke",
-            "3 Money Rules You Must Master in Your 20s",
+            "The Invisible Financial Trap Keeping Most People Broke",
+            "3 Money Rules You Must Master Before 30",
             "Passive Income Models That Work in 2026"
         ]
     },
     "philosophy_stoicism": {
         "name": "Stoicism & Ancient Wisdom",
         "bg_music": "cinematic_epic.mp3",
-        "visual_keywords": ["roman marble statue dusk", "mountaintop sunrise fog", "ancient Greek temple sunset", "lonely warrior cliff", "calm ocean waves sunset"],
+        "visual_keywords": ["roman marble statue dusk", "mountaintop sunrise fog", "ancient Greek temple sunset", "lonely warrior cliff horizon", "calm ocean waves sunset"],
         "sample_topics": [
             "Marcus Aurelius: 3 Lessons to Master Your Mind",
             "Stop Caring What Others Think of You",
@@ -61,7 +61,7 @@ NICHE_TEMPLATES = {
     "horror_truecrime": {
         "name": "Horror & Unsolved Mysteries",
         "bg_music": "scary_drone.mp3",
-        "visual_keywords": ["abandoned mansion corridor", "dark misty woods night", "vintage security camera flickering", "haunted house window", "creepy forest path"],
+        "visual_keywords": ["abandoned mansion corridor night", "dark misty woods moonlight", "vintage security camera glitch", "haunted house window shadow", "creepy forest path fog"],
         "sample_topics": [
             "The Creepiest Unsolved Glitch in Real Life",
             "Terrifying Disturbing Phenomena Scientists Can't Explain",
@@ -72,7 +72,7 @@ NICHE_TEMPLATES = {
     "motivation_success": {
         "name": "High Performance & Discipline",
         "bg_music": "triumphant_build.mp3",
-        "visual_keywords": ["athlete running morning mist", "boxer shadowboxing ring", "mountain peak climber top", "high rise office night work", "sunrise over ocean cliff"],
+        "visual_keywords": ["athlete running morning mist", "boxer shadowboxing ring lights", "mountain peak climber top view", "high rise office night work", "sunrise over ocean cliff"],
         "sample_topics": [
             "How to Build Unshakeable Self-Discipline",
             "100 Days of Monastic Focus Changed My Life",
@@ -83,7 +83,7 @@ NICHE_TEMPLATES = {
     "custom_niche": {
         "name": "✨ Custom Topic / Any Custom Niche",
         "bg_music": "tech_ambient.mp3",
-        "visual_keywords": ["cinematic aesthetic", "dramatic lighting 4k", "futuristic background", "luxury modern view", "abstract motion graphics"],
+        "visual_keywords": ["cinematic aesthetic background", "dramatic lighting 4k", "futuristic glowing particle grid", "luxury modern architectural view", "abstract motion graphics 4k"],
         "sample_topics": [
             "The Hidden Psychology Behind Viral Trends",
             "Unbelievable Historical Secrets Revealed",
@@ -110,7 +110,7 @@ class ScriptGenerator:
             return "cinematic_epic.mp3"
         elif any(w in t for w in ["discipline", "success", "workout", "grind", "focus", "1%", "win", "rule", "life"]):
             return "triumphant_build.mp3"
-        elif any(w in t for w in ["fact", "curious", "bizarre", "ocean", "did you know", "science", "anime"]):
+        elif any(w in t for w in ["fact", "curious", "bizarre", "ocean", "did you know", "science", "anime", "dog", "animal"]):
             return "upbeat_cyber.mp3"
         
         niche_info = NICHE_TEMPLATES.get(niche)
@@ -120,22 +120,22 @@ class ScriptGenerator:
 
     def _derive_visual_keywords(self, topic: str, niche: str) -> list:
         t = topic.lower()
-        if any(w in t for w in ["anime", "manga", "japan", "naruto", "dragon ball", "goku"]):
-            return ["anime neon city", "tokyo street night lights", "manga drawing artistic", "japanese cyberpunk aesthetic", "cherry blossom dusk"]
+        if any(w in t for w in ["dog", "puppy", "canine", "animal", "pet"]):
+            return ["golden retriever playing outdoors", "dog nose close up detail", "cute smart dog eyes", "loyal German Shepherd forest", "playful puppy grass sunset", "happy dog running park"]
+        elif any(w in t for w in ["anime", "manga", "japan", "naruto", "goku"]):
+            return ["anime neon city night", "tokyo street night lights", "manga drawing artistic pencil", "japanese cyberpunk aesthetic", "cherry blossom dusk glow", "epic anime battle scene"]
         elif any(w in t for w in ["food", "cook", "recipe", "kitchen", "chef", "saffron"]):
-            return ["gourmet dish preparation", "luxury kitchen chef cooking", "vibrant spices close up", "steaming hot food cinematic", "fresh organic ingredients"]
+            return ["gourmet dish preparation", "luxury kitchen chef cooking", "vibrant spices close up", "steaming hot food cinematic", "fresh organic ingredients", "sizzling pan culinary art"]
         elif any(w in t for w in ["space", "galaxy", "nasa", "planet", "star", "cosmic"]):
-            return ["deep space galaxy nebula", "astronaut looking starry sky", "earth from orbit space", "glowing cosmic particles", "alien planet horizon"]
-        elif any(w in t for w in ["car", "speed", "supercar", "engine", "ferrari"]):
-            return ["supercar driving highway night", "sleek sports car neon studio", "engine roaring close up", "luxury vehicle cockpit", "speed motion blur city"]
-        elif any(w in t for w in ["crypto", "bitcoin", "blockchain", "trade"]):
-            return ["digital crypto currency network", "bitcoin golden coin glow", "stock market chart green", "future financial matrix", "holographic trading desk"]
+            return ["deep space galaxy nebula", "astronaut looking starry sky", "earth from orbit space view", "glowing cosmic particles", "alien planet horizon sunset", "supernova explosion space"]
+        elif any(w in t for w in ["car", "speed", "supercar", "ferrari"]):
+            return ["supercar driving highway night", "sleek sports car neon studio", "engine roaring close up detail", "luxury vehicle cockpit dashboard", "speed motion blur city night"]
 
         niche_info = NICHE_TEMPLATES.get(niche, NICHE_TEMPLATES["custom_niche"])
         base_keywords = list(niche_info["visual_keywords"])
         topic_words = [w.lower() for w in topic.split() if len(w) > 3]
         if topic_words:
-            base_keywords.insert(0, " ".join(topic_words[:2]) + " cinematic")
+            base_keywords.insert(0, " ".join(topic_words[:2]) + " cinematic 4k")
         return base_keywords
 
     def generate_script(self, niche: str, topic: str = "", video_type: str = "shorts", tone: str = "dramatic") -> dict:
@@ -158,6 +158,7 @@ class ScriptGenerator:
             scenes = self._generate_longform_scenes(niche, topic, tone, visual_keywords)
 
         total_words = sum(len(s["text"].split()) for s in scenes)
+        # Average reading speed is ~2.5 words per second
         estimated_duration = round(total_words / 2.5, 1)
 
         clean_topic_word = re.sub(r'[^a-zA-Z0-9]', '', topic.split()[0]).lower()
@@ -191,67 +192,71 @@ class ScriptGenerator:
         kw = visual_keywords
         t_low = topic.lower()
 
-        if "anime" in t_low or "manga" in t_low:
-            hook = f"Did you know these mind-blowing secrets about {topic}?"
-            body1 = "Anime creators frequently hide secret codes and real-world history inside background frames."
-            body2 = "The most legendary scenes take over three months of manual frame-by-frame animation."
-            climax = "Look closer next time you watch, because nothing in anime is drawn by accident!"
-            cta = "Subscribe for daily anime breakdowns!"
-        elif "food" in t_low or "cook" in t_low or "saffron" in t_low:
-            hook = f"Here is the incredible secret behind {topic}!"
-            body1 = "Master chefs use precise temperature control to unlock deep natural flavors."
-            body2 = "Even rare luxury spices like real saffron require over 75,000 flowers per pound."
-            climax = "Once you try authentic artisanal cooking, ordinary food will never taste the same."
-            cta = "Subscribe for more delicious culinary secrets!"
-        elif "space" in t_low or "galaxy" in t_low:
-            hook = f"What scientists just discovered about {topic} will shock you!"
-            body1 = "Deep space holds ancient cosmic structures that defy our understanding of physics."
-            body2 = "Signals traveling millions of light-years reach Earth carrying clues to our origin."
-            climax = "The universe is far stranger and more vast than humanity ever imagined."
-            cta = "Subscribe for mind-blowing space discoveries!"
+        # 6-Scene High-Retention Script (100 - 130 words for ~38 to 45 seconds total duration)
+        if any(w in t_low for w in ["dog", "puppy", "canine", "animal", "pet"]):
+            scenes_content = [
+                ("Hook", f"Think you know everything about dogs? These three mind-blowing facts will completely change how you see your pet!", kw[0] if len(kw) > 0 else "dog eyes cinematic", "CANINE SECRETS"),
+                ("Fact 1", "First, a dog's nose print is 100% unique, just like a human fingerprint. No two dogs on Earth share the exact same nose pattern!", kw[1] if len(kw) > 1 else "dog nose close up", "UNIQUE NOSE PRINT"),
+                ("Fact 2", "Second, dogs don't just smell food—they can actually smell human emotions! They detect tiny chemical changes in your sweat when you're stressed or happy.", kw[2] if len(kw) > 2 else "loyal dog eyes", "SMELL EMOTIONS"),
+                ("Fact 3", "Third, when your dog wags its tail to the right, it means they are relaxed and happy. But a tail wag to the left indicates fear and anxiety!", kw[3] if len(kw) > 3 else "dog tail wagging", "TAIL CODE EXPOSED"),
+                ("Climax", "Finally, dogs dream just like humans do. During REM sleep, their brains replay memories of playing and running with you!", kw[4] if len(kw) > 4 else "sleeping dog dreaming", "DOGS DREAM OF YOU"),
+                ("CTA", "Did any of these surprise you? Subscribe now for more incredible animal facts!", kw[5] if len(kw) > 5 else "happy dog running", "SUBSCRIBE FOR MORE")
+            ]
+        elif any(w in t_low for w in ["space", "galaxy", "nasa", "planet", "star"]):
+            scenes_content = [
+                ("Hook", f"Space is far stranger than you think! Here are three terrifying cosmic facts that sound like science fiction.", kw[0] if len(kw) > 0 else "deep space galaxy", "COSMIC SECRETS"),
+                ("Fact 1", "First, out in deep space, there is zero sound. Because sound requires air to travel, cosmic explosions occur in complete, haunting silence!", kw[1] if len(kw) > 1 else "glowing nebula space", "SILENCE OF SPACE"),
+                ("Fact 2", "Second, on planets like Neptune and Uranus, extreme atmospheric pressure causes it to literally rain solid diamonds from the sky!", kw[2] if len(kw) > 2 else "planet atmosphere glow", "DIAMOND RAIN"),
+                ("Fact 3", "Third, neutron stars spin at absurd speeds—up to 700 times per second—creating magnetic fields powerful enough to wipe your credit cards from miles away!", kw[3] if len(kw) > 3 else "neutron star spinning", "NEUTRON POWER"),
+                ("Climax", "And because there is no wind or liquid water on the Moon, astronaut footprints left 50 years ago will remain preserved for 100 million years!", kw[4] if len(kw) > 4 else "moon surface footprints", "PRESERVED FOREVER"),
+                ("CTA", "Which cosmic mystery shocked you most? Subscribe for daily space discoveries!", kw[5] if len(kw) > 5 else "glowing starry night", "SUBSCRIBE FOR MORE")
+            ]
+        elif any(w in t_low for w in ["manipulate", "psychology", "mind", "silence", "narcissist", "dark"]):
+            scenes_content = [
+                ("Hook", f"Here are three dark psychological tactics people secretly use to control conversations without you noticing.", kw[0] if len(kw) > 0 else "dark shadow silhouette", "DARK PSYCHOLOGY"),
+                ("Fact 1", "First, the Power of Strategic Silence. When someone gives you a weak answer, stay completely quiet and maintain eye contact. They will naturally spill the truth just to break the uncomfortable tension!", kw[1] if len(kw) > 1 else "dramatic silhouette", "SILENCE TECHNIQUE"),
+                ("Fact 2", "Second, the Choice Illusion. Manipulators never ask yes or no. They offer two choices that both lead to the exact outcome they wanted in the first place!", kw[2] if len(kw) > 2 else "dark neon street", "FALSE CHOICES"),
+                ("Fact 3", "Third, the Ben Franklin Effect. Asking someone for a tiny favor tricks their brain into believing they genuinely like and trust you!", kw[3] if len(kw) > 3 else "rainy city night", "BRAIN TRICK"),
+                ("Climax", "Once you recognize these subconscious patterns, nobody can ever manipulate your choices again.", kw[4] if len(kw) > 4 else "mysterious noir light", "UNTOUCHABLE MIND"),
+                ("CTA", "Have you ever experienced these tactics? Subscribe for powerful psychological insights!", kw[5] if len(kw) > 5 else "abstract neon glow", "SUBSCRIBE FOR MORE")
+            ]
+        elif any(w in t_low for w in ["money", "wealth", "finance", "rich", "broke"]):
+            scenes_content = [
+                ("Hook", f"Want to break the broke cycle? Here are three harsh financial truths the top 1% use to build massive wealth!", kw[0] if len(kw) > 0 else "luxury skyscraper skyline", "WEALTH RULES"),
+                ("Fact 1", "First, poor people spend money to look rich, while wealthy people invest money to buy assets that generate income while they sleep!", kw[1] if len(kw) > 1 else "gold money stack", "ASSETS VS LIABILITIES"),
+                ("Fact 2", "Second, inflation silently destroys cash sitting in bank accounts. If your money isn't earning returns above inflation, you are losing purchasing power every single day!", kw[2] if len(kw) > 2 else "stock market chart green", "INFLATION TRAP"),
+                ("Fact 3", "Third, compound interest is the eighth wonder of the world. Investing small amounts consistently in your 20s produces exponentially more wealth than starting late with millions!", kw[3] if len(kw) > 3 else "financial network data", "COMPOUND POWER"),
+                ("Climax", "Master your money mindset today, or you will spend your entire life working for someone else's dreams.", kw[4] if len(kw) > 4 else "private jet sunset", "OWN YOUR FUTURE"),
+                ("CTA", "Ready to build true financial freedom? Subscribe for daily wealth strategies!", kw[5] if len(kw) > 5 else "city skyline sunset", "SUBSCRIBE FOR MORE")
+            ]
+        elif any(w in t_low for w in ["stoic", "marcus", "philosophy", "aurelius", "calm"]):
+            scenes_content = [
+                ("Hook", f"Feeling overwhelmed by life? Here are three timeless Stoic principles from Emperor Marcus Aurelius to master your mind.", kw[0] if len(kw) > 0 else "statue dusk sunset", "STOIC WISDOM"),
+                ("Fact 1", "First, you have power over your mind, not outside events. Realize this, and you will find instant unshakeable strength!", kw[1] if len(kw) > 1 else "mountaintop fog sunrise", "CONTROL YOUR MIND"),
+                ("Fact 2", "Second, the impediment to action advances action. What stands in the way becomes the way forward!", kw[2] if len(kw) > 2 else "ancient temple ruins", "OBSTACLE IS WAY"),
+                ("Fact 3", "Third, remember Memento Mori—that you are mortal. Knowing your time is limited frees you from wasting energy on meaningless drama!", kw[3] if len(kw) > 3 else "lonely cliff warrior", "MEMENTO MORI"),
+                ("Climax", "When you stop reacting to chaos and focus solely on your internal discipline, nothing in this world can disturb your peace.", kw[4] if len(kw) > 4 else "calm ocean waves", "UNBREAKABLE PEACE"),
+                ("CTA", "Which Stoic lesson resonated with you most? Subscribe for ancient wisdom!", kw[5] if len(kw) > 5 else "horizon sunset view", "SUBSCRIBE FOR MORE")
+            ]
         else:
-            hook = f"Did you know the secret behind {topic}?"
-            body1 = f"Most people completely misunderstand {topic}, but the reality is fascinating."
-            body2 = "When you analyze the deeper facts, a shocking pattern begins to emerge."
-            climax = "Once you see this truth, you can never look at it the same way again."
-            cta = "Subscribe for more daily insights!"
+            scenes_content = [
+                ("Hook", f"Did you know these unbelievable facts about {topic}? The truth will completely surprise you!", kw[0] if len(kw) > 0 else "cinematic intro glow", "THE HIDDEN TRUTH"),
+                ("Fact 1", f"First, most people think {topic} is simple, but deep historical records reveal a shocking secret that changed everything.", kw[1] if len(kw) > 1 else "dramatic mystery lighting", "HISTORICAL REVELATION"),
+                ("Fact 2", f"Second, modern researchers discovered that key aspects of {topic} operate completely differently under close scientific analysis!", kw[2] if len(kw) > 2 else "futuristic abstract grid", "SCIENTIFIC PROOF"),
+                ("Fact 3", f"Third, experts spent decades decoding how {topic} impacts our daily choices without us ever realizing it!", kw[3] if len(kw) > 3 else "high tech matrix stream", "HIDDEN INFLUENCE"),
+                ("Climax", f"Once you understand the real mechanics behind {topic}, you will never see the world in the same way again.", kw[4] if len(kw) > 4 else "epic glowing horizon", "MIND SHIFT"),
+                ("CTA", "Did this open your eyes? Subscribe now for more daily mind-blowing breakdowns!", kw[5] if len(kw) > 5 else "aesthetic sunset sky", "SUBSCRIBE FOR MORE")
+            ]
 
         return [
             {
-                "scene_num": 1,
-                "type": "Hook",
-                "text": hook,
-                "search_term": kw[0] if len(kw) > 0 else "cinematic intro",
-                "on_screen_text": "THE TRUTH REVEALED"
-            },
-            {
-                "scene_num": 2,
-                "type": "Insight 1",
-                "text": body1,
-                "search_term": kw[1] if len(kw) > 1 else "dramatic mystery",
-                "on_screen_text": "DEEPER INSIGHT"
-            },
-            {
-                "scene_num": 3,
-                "type": "Insight 2",
-                "text": body2,
-                "search_term": kw[2] if len(kw) > 2 else "futuristic abstract",
-                "on_screen_text": "CRITICAL FACT"
-            },
-            {
-                "scene_num": 4,
-                "type": "Climax",
-                "text": climax,
-                "search_term": kw[3] if len(kw) > 3 else "epic climax",
-                "on_screen_text": "THE REVELATION"
-            },
-            {
-                "scene_num": 5,
-                "type": "Call to Action",
-                "text": cta,
-                "search_term": kw[4] if len(kw) > 4 else "aesthetic landscape",
-                "on_screen_text": "SUBSCRIBE NOW"
+                "scene_num": i + 1,
+                "type": item[0],
+                "text": item[1],
+                "search_term": item[2],
+                "on_screen_text": item[3]
             }
+            for i, item in enumerate(scenes_content)
         ]
 
     def _generate_longform_scenes(self, niche: str, topic: str, tone: str, visual_keywords: list) -> list:
