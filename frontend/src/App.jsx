@@ -84,6 +84,7 @@ export default function App() {
   useEffect(() => {
     fetchNiches();
     fetchVoices();
+    fetchBgmTracks();
     fetchLibrary();
     fetchYtStatus();
     fetchAutoPilotStatus();

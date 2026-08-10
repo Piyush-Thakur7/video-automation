@@ -19,6 +19,7 @@ NICHE_TEMPLATES = {
         "bg_music": "upbeat_cyber.mp3",
         "visual_keywords": ["cosmic nebula starry sky", "deep sea glowing creature", "ancient temple ruins sunset", "futuristic tech particles", "galaxy cosmic horizon"],
         "sample_topics": [
+            "Unbelievable Facts About Cats You Never Knew",
             "Unbelievable Facts About Dogs You Never Knew",
             "5 Things You Didn't Know About Deep Space",
             "Bizarre Historical Events That Sound Completely Fake",
@@ -98,7 +99,7 @@ class ScriptGenerator:
 
     def auto_select_bgm(self, topic: str, niche: str) -> str:
         t = topic.lower()
-        if any(w in t for w in ["dog", "puppy", "canine", "animal", "pet", "funny", "cute", "humor", "joke"]):
+        if any(w in t for w in ["cat", "kitten", "feline", "dog", "puppy", "canine", "animal", "pet", "funny", "cute", "humor"]):
             return "happy_playful.mp3"
         elif any(w in t for w in ["lofi", "chill", "relax", "cozy", "nature", "peace", "life", "habit"]):
             return "lofi_chill.mp3"
@@ -110,7 +111,7 @@ class ScriptGenerator:
             return "tech_ambient.mp3"
         elif any(w in t for w in ["money", "wealth", "finance", "rich", "business", "invest", "broke", "passive", "dollar"]):
             return "inspiring_modern.mp3"
-        elif any(w in t for w in ["stoic", "marcus", "philosophy", "aurelius", "warrior", "space", "universe", "ancient"]):
+        elif any(w in t for w in ["stoic", "marcus", "philosophy", "aurelius", "warrior", "space", "universe", "ancient", "history"]):
             return "cinematic_epic.mp3"
         elif any(w in t for w in ["discipline", "success", "workout", "grind", "focus", "1%", "win", "rule"]):
             return "triumphant_build.mp3"
@@ -124,12 +125,12 @@ class ScriptGenerator:
 
     def _derive_visual_keywords(self, topic: str, niche: str) -> list:
         t = topic.lower()
-        if any(w in t for w in ["dog", "puppy", "canine", "animal", "pet"]):
+        if any(w in t for w in ["cat", "kitten", "feline"]):
+            return ["cute cat eyes close up", "playful kitten indoor sunlight", "sleeping cat purring soft", "cat walking outdoors garden", "funny cat jumping high", "cat nose close up detail"]
+        elif any(w in t for w in ["dog", "puppy", "canine", "animal", "pet"]):
             return ["golden retriever playing outdoors", "dog nose close up detail", "cute smart dog eyes", "loyal German Shepherd forest", "playful puppy grass sunset", "happy dog running park"]
-        elif any(w in t for w in ["anime", "manga", "japan", "naruto", "goku"]):
-            return ["anime neon city night", "tokyo street night lights", "manga drawing artistic pencil", "japanese cyberpunk aesthetic", "cherry blossom dusk glow", "epic anime battle scene"]
-        elif any(w in t for w in ["food", "cook", "recipe", "kitchen", "chef", "saffron"]):
-            return ["gourmet dish preparation", "luxury kitchen chef cooking", "vibrant spices close up", "steaming hot food cinematic", "fresh organic ingredients", "sizzling pan culinary art"]
+        elif any(w in t for w in ["history", "historical", "ancient", "roman", "egypt", "pyramid"]):
+            return ["ancient egypt pyramid sunset", "roman colosseum marble architecture", "medieval castle fortress mist", "ancient manuscript scroll close up", "historical battle arena dust", "ancient temple glowing dusk"]
         elif any(w in t for w in ["space", "galaxy", "nasa", "planet", "star", "cosmic"]):
             return ["deep space galaxy nebula", "astronaut looking starry sky", "earth from orbit space view", "glowing cosmic particles", "alien planet horizon sunset", "supernova explosion space"]
         elif any(w in t for w in ["car", "speed", "supercar", "ferrari"]):
@@ -137,10 +138,17 @@ class ScriptGenerator:
 
         niche_info = NICHE_TEMPLATES.get(niche, NICHE_TEMPLATES["custom_niche"])
         base_keywords = list(niche_info["visual_keywords"])
-        topic_words = [w.lower() for w in topic.split() if len(w) > 3]
-        if topic_words:
-            base_keywords.insert(0, " ".join(topic_words[:2]) + " cinematic 4k")
+        clean_topic = self._clean_topic_phrase(topic)
+        if clean_topic:
+            base_keywords.insert(0, f"{clean_topic} cinematic 4k")
         return base_keywords
+
+    def _clean_topic_phrase(self, raw_topic: str) -> str:
+        """Strips generic filler phrases like 'interesting fact about', 'facts about', 'tell me about'."""
+        t = raw_topic.strip()
+        t = re.sub(r'^(interesting|unbelievable|mind-blowing|top|best|bizarre|shocking)?\s*(facts?|mysteries|secrets?|things?)\s*(about|of|on)?\s*', '', t, flags=re.IGNORECASE)
+        t = re.sub(r'^(tell me about|what is|how to|why is)\s*', '', t, flags=re.IGNORECASE)
+        return t.strip() or raw_topic.strip()
 
     def generate_script(self, niche: str, topic: str = "", video_type: str = "shorts", tone: str = "dramatic") -> dict:
         niche_info = NICHE_TEMPLATES.get(niche, NICHE_TEMPLATES["custom_niche"])
@@ -165,7 +173,8 @@ class ScriptGenerator:
         # Average reading speed is ~2.5 words per second
         estimated_duration = round(total_words / 2.5, 1)
 
-        clean_topic_word = re.sub(r'[^a-zA-Z0-9]', '', topic.split()[0]).lower()
+        clean_subject = self._clean_topic_phrase(topic).capitalize()
+        clean_topic_word = re.sub(r'[^a-zA-Z0-9]', '', clean_subject.split()[0]).lower() if clean_subject else "facts"
         tags = [
             f"#{niche}",
             "#shorts",
@@ -175,7 +184,7 @@ class ScriptGenerator:
             f"#{clean_topic_word}"
         ]
 
-        title = f"{topic} | Must Watch!" if len(topic) < 45 else topic
+        title = f"Unbelievable Facts About {clean_subject}!" if len(clean_subject) < 35 else topic
 
         return {
             "niche": niche,
@@ -186,7 +195,7 @@ class ScriptGenerator:
             "bg_music": auto_bgm,
             "estimated_duration_sec": estimated_duration,
             "seo": {
-                "description": f"Explore {topic} in this deep dive video. Subscribe for daily videos!\n\n" + " ".join(tags),
+                "description": f"Explore incredible facts about {clean_subject} in this short video. Subscribe for daily mind-blowing facts!\n\n" + " ".join(tags),
                 "tags": [t.replace("#", "") for t in tags]
             },
             "scenes": scenes
@@ -196,60 +205,89 @@ class ScriptGenerator:
         kw = visual_keywords
         t_low = topic.lower()
 
-        # 6-Scene High-Retention Script (100 - 130 words for ~38 to 45 seconds total duration)
-        if any(w in t_low for w in ["dog", "puppy", "canine", "animal", "pet"]):
+        # CATS / FELINES DOMAIN KNOWLEDGE ENGINE
+        if any(w in t_low for w in ["cat", "kitten", "feline"]):
             scenes_content = [
-                ("Hook", f"Think you know everything about dogs? These three mind-blowing facts will completely change how you see your pet!", kw[0] if len(kw) > 0 else "dog eyes cinematic", "CANINE SECRETS"),
+                ("Hook", "Think you know cats? These three mind-blowing feline facts will completely shock you!", kw[0] if len(kw) > 0 else "cute cat eyes close up", "CAT SECRETS"),
+                ("Fact 1", "First, a cat's purr vibrates between 20 and 140 Hertz—a frequency scientifically proven to heal human bones, muscles, and tendons!", kw[1] if len(kw) > 1 else "cat purring soft", "HEALING PURRS"),
+                ("Fact 2", "Second, cats spend 70% of their entire lives sleeping, which means a 9-year-old cat has only been awake for 3 years!", kw[2] if len(kw) > 2 else "sleeping cat indoor", "70% LIFE SLEEPING"),
+                ("Fact 3", "Third, cats have no collarbones! This unique skeletal flexibility allows them to squeeze through any opening their head fits through.", kw[3] if len(kw) > 3 else "cat walking garden", "NO COLLARBONES"),
+                ("Climax", "Finally, a cat's nose print is 100% unique! Just like human fingerprints, no two cat nose prints on Earth are identical.", kw[4] if len(kw) > 4 else "cat nose close up", "UNIQUE NOSE PRINT"),
+                ("CTA", "Did any of these surprise you? Subscribe now for daily incredible animal facts!", kw[5] if len(kw) > 5 else "funny cat jumping", "SUBSCRIBE FOR MORE")
+            ]
+        # DOGS / CANINES DOMAIN KNOWLEDGE ENGINE
+        elif any(w in t_low for w in ["dog", "puppy", "canine", "pet"]):
+            scenes_content = [
+                ("Hook", "Think you know everything about dogs? These three mind-blowing facts will completely change how you see your pet!", kw[0] if len(kw) > 0 else "dog eyes cinematic", "CANINE SECRETS"),
                 ("Fact 1", "First, a dog's nose print is 100% unique, just like a human fingerprint. No two dogs on Earth share the exact same nose pattern!", kw[1] if len(kw) > 1 else "dog nose close up", "UNIQUE NOSE PRINT"),
                 ("Fact 2", "Second, dogs don't just smell food—they can actually smell human emotions! They detect tiny chemical changes in your sweat when you're stressed or happy.", kw[2] if len(kw) > 2 else "loyal dog eyes", "SMELL EMOTIONS"),
                 ("Fact 3", "Third, when your dog wags its tail to the right, it means they are relaxed and happy. But a tail wag to the left indicates fear and anxiety!", kw[3] if len(kw) > 3 else "dog tail wagging", "TAIL CODE EXPOSED"),
                 ("Climax", "Finally, dogs dream just like humans do. During REM sleep, their brains replay memories of playing and running with you!", kw[4] if len(kw) > 4 else "sleeping dog dreaming", "DOGS DREAM OF YOU"),
                 ("CTA", "Did any of these surprise you? Subscribe now for more incredible animal facts!", kw[5] if len(kw) > 5 else "happy dog running", "SUBSCRIBE FOR MORE")
             ]
+        # HISTORY DOMAIN KNOWLEDGE ENGINE
+        elif any(w in t_low for w in ["history", "historical", "ancient", "roman", "egypt", "pyramid"]):
+            scenes_content = [
+                ("Hook", "History class lied to you! Here are three insane historical facts they never taught you in school.", kw[0] if len(kw) > 0 else "ancient egypt pyramid", "HISTORICAL TRUTHS"),
+                ("Fact 1", "First, Napoleon Bonaparte was never short! At 5 feet 7 inches, he was actually above average height for a Frenchman of his time.", kw[1] if len(kw) > 1 else "roman colosseum marble", "NAPOLEON HEIGHT MYTH"),
+                ("Fact 2", "Second, Cleopatra lived closer in time to the launch of the iPhone than to the construction of the Great Pyramid of Giza!", kw[2] if len(kw) > 2 else "ancient manuscript scroll", "CLEOPATRA TIMELINE"),
+                ("Fact 3", "Third, ancient Romans used human urine as mouthwash because ammonia acted as a powerful natural stain remover!", kw[3] if len(kw) > 3 else "medieval castle fortress", "ROMAN MOUTHWASH"),
+                ("Climax", "History is far wilder and stranger than any fiction writer could ever invent.", kw[4] if len(kw) > 4 else "historical battle arena", "WILD HISTORY"),
+                ("CTA", "Which historical fact shocked you most? Subscribe for daily ancient revelations!", kw[5] if len(kw) > 5 else "ancient temple dusk", "SUBSCRIBE FOR MORE")
+            ]
+        # SPACE DOMAIN KNOWLEDGE ENGINE
         elif any(w in t_low for w in ["space", "galaxy", "nasa", "planet", "star"]):
             scenes_content = [
-                ("Hook", f"Space is far stranger than you think! Here are three terrifying cosmic facts that sound like science fiction.", kw[0] if len(kw) > 0 else "deep space galaxy", "COSMIC SECRETS"),
+                ("Hook", "Space is far stranger than you think! Here are three terrifying cosmic facts that sound like science fiction.", kw[0] if len(kw) > 0 else "deep space galaxy", "COSMIC SECRETS"),
                 ("Fact 1", "First, out in deep space, there is zero sound. Because sound requires air to travel, cosmic explosions occur in complete, haunting silence!", kw[1] if len(kw) > 1 else "glowing nebula space", "SILENCE OF SPACE"),
                 ("Fact 2", "Second, on planets like Neptune and Uranus, extreme atmospheric pressure causes it to literally rain solid diamonds from the sky!", kw[2] if len(kw) > 2 else "planet atmosphere glow", "DIAMOND RAIN"),
-                ("Fact 3", "Third, neutron stars spin at absurd speeds—up to 700 times per second—creating magnetic fields powerful enough to wipe your credit cards from miles away!", kw[3] if len(kw) > 3 else "neutron star spinning", "NEUTRON POWER"),
+                ("Fact 3", "Third, neutron stars spin at absurd speeds—up to 700 times per second—creating magnetic fields powerful enough to wipe credit cards from miles away!", kw[3] if len(kw) > 3 else "neutron star spinning", "NEUTRON POWER"),
                 ("Climax", "And because there is no wind or liquid water on the Moon, astronaut footprints left 50 years ago will remain preserved for 100 million years!", kw[4] if len(kw) > 4 else "moon surface footprints", "PRESERVED FOREVER"),
                 ("CTA", "Which cosmic mystery shocked you most? Subscribe for daily space discoveries!", kw[5] if len(kw) > 5 else "glowing starry night", "SUBSCRIBE FOR MORE")
             ]
+        # PSYCHOLOGY DOMAIN KNOWLEDGE ENGINE
         elif any(w in t_low for w in ["manipulate", "psychology", "mind", "silence", "narcissist", "dark"]):
             scenes_content = [
-                ("Hook", f"Here are three dark psychological tactics people secretly use to control conversations without you noticing.", kw[0] if len(kw) > 0 else "dark shadow silhouette", "DARK PSYCHOLOGY"),
+                ("Hook", "Here are three dark psychological tactics people secretly use to control conversations without you noticing.", kw[0] if len(kw) > 0 else "dark shadow silhouette", "DARK PSYCHOLOGY"),
                 ("Fact 1", "First, the Power of Strategic Silence. When someone gives you a weak answer, stay completely quiet and maintain eye contact. They will naturally spill the truth just to break the uncomfortable tension!", kw[1] if len(kw) > 1 else "dramatic silhouette", "SILENCE TECHNIQUE"),
                 ("Fact 2", "Second, the Choice Illusion. Manipulators never ask yes or no. They offer two choices that both lead to the exact outcome they wanted in the first place!", kw[2] if len(kw) > 2 else "dark neon street", "FALSE CHOICES"),
                 ("Fact 3", "Third, the Ben Franklin Effect. Asking someone for a tiny favor tricks their brain into believing they genuinely like and trust you!", kw[3] if len(kw) > 3 else "rainy city night", "BRAIN TRICK"),
                 ("Climax", "Once you recognize these subconscious patterns, nobody can ever manipulate your choices again.", kw[4] if len(kw) > 4 else "mysterious noir light", "UNTOUCHABLE MIND"),
                 ("CTA", "Have you ever experienced these tactics? Subscribe for powerful psychological insights!", kw[5] if len(kw) > 5 else "abstract neon glow", "SUBSCRIBE FOR MORE")
             ]
+        # WEALTH / MONEY DOMAIN KNOWLEDGE ENGINE
         elif any(w in t_low for w in ["money", "wealth", "finance", "rich", "broke"]):
             scenes_content = [
-                ("Hook", f"Want to break the broke cycle? Here are three harsh financial truths the top 1% use to build massive wealth!", kw[0] if len(kw) > 0 else "luxury skyscraper skyline", "WEALTH RULES"),
+                ("Hook", "Want to break the broke cycle? Here are three harsh financial truths the top 1% use to build massive wealth!", kw[0] if len(kw) > 0 else "luxury skyscraper skyline", "WEALTH RULES"),
                 ("Fact 1", "First, poor people spend money to look rich, while wealthy people invest money to buy assets that generate income while they sleep!", kw[1] if len(kw) > 1 else "gold money stack", "ASSETS VS LIABILITIES"),
                 ("Fact 2", "Second, inflation silently destroys cash sitting in bank accounts. If your money isn't earning returns above inflation, you are losing purchasing power every single day!", kw[2] if len(kw) > 2 else "stock market chart green", "INFLATION TRAP"),
                 ("Fact 3", "Third, compound interest is the eighth wonder of the world. Investing small amounts consistently in your 20s produces exponentially more wealth than starting late with millions!", kw[3] if len(kw) > 3 else "financial network data", "COMPOUND POWER"),
                 ("Climax", "Master your money mindset today, or you will spend your entire life working for someone else's dreams.", kw[4] if len(kw) > 4 else "private jet sunset", "OWN YOUR FUTURE"),
                 ("CTA", "Ready to build true financial freedom? Subscribe for daily wealth strategies!", kw[5] if len(kw) > 5 else "city skyline sunset", "SUBSCRIBE FOR MORE")
             ]
+        # STOICISM DOMAIN KNOWLEDGE ENGINE
         elif any(w in t_low for w in ["stoic", "marcus", "philosophy", "aurelius", "calm"]):
             scenes_content = [
-                ("Hook", f"Feeling overwhelmed by life? Here are three timeless Stoic principles from Emperor Marcus Aurelius to master your mind.", kw[0] if len(kw) > 0 else "statue dusk sunset", "STOIC WISDOM"),
+                ("Hook", "Feeling overwhelmed by life? Here are three timeless Stoic principles from Emperor Marcus Aurelius to master your mind.", kw[0] if len(kw) > 0 else "statue dusk sunset", "STOIC WISDOM"),
                 ("Fact 1", "First, you have power over your mind, not outside events. Realize this, and you will find instant unshakeable strength!", kw[1] if len(kw) > 1 else "mountaintop fog sunrise", "CONTROL YOUR MIND"),
                 ("Fact 2", "Second, the impediment to action advances action. What stands in the way becomes the way forward!", kw[2] if len(kw) > 2 else "ancient temple ruins", "OBSTACLE IS WAY"),
                 ("Fact 3", "Third, remember Memento Mori—that you are mortal. Knowing your time is limited frees you from wasting energy on meaningless drama!", kw[3] if len(kw) > 3 else "lonely cliff warrior", "MEMENTO MORI"),
                 ("Climax", "When you stop reacting to chaos and focus solely on your internal discipline, nothing in this world can disturb your peace.", kw[4] if len(kw) > 4 else "calm ocean waves", "UNBREAKABLE PEACE"),
                 ("CTA", "Which Stoic lesson resonated with you most? Subscribe for ancient wisdom!", kw[5] if len(kw) > 5 else "horizon sunset view", "SUBSCRIBE FOR MORE")
             ]
+        # DYNAMIC CUSTOM SUBJECT ENGINE (NO ROBOTIC TEMPLATES!)
         else:
+            clean_sub = self._clean_topic_phrase(topic).strip()
+            if not clean_sub:
+                clean_sub = "this fascinating subject"
+            
             scenes_content = [
-                ("Hook", f"Did you know these unbelievable facts about {topic}? The truth will completely surprise you!", kw[0] if len(kw) > 0 else "cinematic intro glow", "THE HIDDEN TRUTH"),
-                ("Fact 1", f"First, most people think {topic} is simple, but deep historical records reveal a shocking secret that changed everything.", kw[1] if len(kw) > 1 else "dramatic mystery lighting", "HISTORICAL REVELATION"),
-                ("Fact 2", f"Second, modern researchers discovered that key aspects of {topic} operate completely differently under close scientific analysis!", kw[2] if len(kw) > 2 else "futuristic abstract grid", "SCIENTIFIC PROOF"),
-                ("Fact 3", f"Third, experts spent decades decoding how {topic} impacts our daily choices without us ever realizing it!", kw[3] if len(kw) > 3 else "high tech matrix stream", "HIDDEN INFLUENCE"),
-                ("Climax", f"Once you understand the real mechanics behind {topic}, you will never see the world in the same way again.", kw[4] if len(kw) > 4 else "epic glowing horizon", "MIND SHIFT"),
-                ("CTA", "Did this open your eyes? Subscribe now for more daily mind-blowing breakdowns!", kw[5] if len(kw) > 5 else "aesthetic sunset sky", "SUBSCRIBE FOR MORE")
+                ("Hook", f"Here are three mind-blowing facts about {clean_sub} that most people have never heard before!", kw[0] if len(kw) > 0 else "cinematic intro glow", f"SECRETS OF {clean_sub.upper()[:14]}"),
+                ("Fact 1", f"First, historical analysis reveals that early discoveries surrounding {clean_sub} completely altered how experts understood its core mechanics.", kw[1] if len(kw) > 1 else "dramatic mystery lighting", "HISTORICAL FACT"),
+                ("Fact 2", f"Second, modern scientific testing proves that key elements of {clean_sub} produce surprising physical and psychological effects!", kw[2] if len(kw) > 2 else "futuristic abstract grid", "SCIENTIFIC BREAKTHROUGH"),
+                ("Fact 3", f"Third, researchers spent years uncovering how subtle changes in {clean_sub} impact daily human behavior without us noticing.", kw[3] if len(kw) > 3 else "high tech matrix stream", "HIDDEN PATTERNS"),
+                ("Climax", f"Understanding the true nature of {clean_sub} gives you a whole new perspective on how the world operates.", kw[4] if len(kw) > 4 else "epic glowing horizon", "NEW PERSPECTIVE"),
+                ("CTA", f"Did learning about {clean_sub} surprise you? Subscribe now for daily mind-blowing facts!", kw[5] if len(kw) > 5 else "aesthetic sunset sky", "SUBSCRIBE FOR MORE")
             ]
 
         return [
@@ -264,19 +302,20 @@ class ScriptGenerator:
         ]
 
     def _generate_longform_scenes(self, niche: str, topic: str, tone: str, visual_keywords: list) -> list:
+        clean_sub = self._clean_topic_phrase(topic)
         kw = visual_keywords
         return [
             {
                 "scene_num": 1,
                 "type": "Introduction",
-                "text": f"Welcome back. Today we are uncovering the unbelievable truth about {topic}.",
+                "text": f"Welcome back. Today we are uncovering the unbelievable truth about {clean_sub}.",
                 "search_term": kw[0] if len(kw) > 0 else "epic opening cinematic",
-                "on_screen_text": topic.upper()
+                "on_screen_text": clean_sub.upper()[:24]
             },
             {
                 "scene_num": 2,
                 "type": "Historical Context",
-                "text": f"To understand {topic}, we must look back at how this hidden phenomenon first began.",
+                "text": f"To understand {clean_sub}, we must look back at how this hidden phenomenon first began.",
                 "search_term": kw[1] if len(kw) > 1 else "historical archives",
                 "on_screen_text": "THE ORIGINS"
             },
