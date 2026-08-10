@@ -89,9 +89,12 @@ export default function App() {
     fetchVoices();
     fetchBgmTracks();
     fetchLibrary();
-    fetchYtStatus();
     fetchAutoPilotStatus();
   }, []);
+
+  useEffect(() => {
+    fetchYtStatus(activeProfile);
+  }, [activeProfile]);
 
   // Poll render job status if active
   useEffect(() => {
@@ -149,9 +152,9 @@ export default function App() {
     }
   };
 
-  const fetchYtStatus = async () => {
+  const fetchYtStatus = async (profileId = activeProfile) => {
     try {
-      const res = await axios.get(`${API_BASE}/youtube/status`);
+      const res = await axios.get(`${API_BASE}/youtube/status?profile_id=${profileId}`);
       setYtStatus(res.data);
     } catch (e) {
       console.error(e);
@@ -301,13 +304,25 @@ export default function App() {
         title: ytUploadData.title,
         description: ytUploadData.description,
         tags: ytUploadData.tags.split(',').map(t => t.trim()),
-        privacy_status: ytUploadData.privacy
+        privacy_status: ytUploadData.privacy,
+        profile_id: activeProfile
       });
       setUploadResult(res.data);
     } catch (e) {
       setUploadResult({ success: false, error: e.message });
     } finally {
       setIsUploadingYt(false);
+    }
+  };
+
+  const handleConnectYt = async () => {
+    try {
+      const res = await axios.get(`${API_BASE}/youtube/auth-url?profile_id=${activeProfile}`);
+      if (res.data.auth_url) {
+        window.open(res.data.auth_url, '_blank');
+      }
+    } catch (e) {
+      alert(`OAuth Error: ${e.response?.data?.detail || e.message}`);
     }
   };
 
@@ -905,15 +920,22 @@ export default function App() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                   <Youtube size={28} color="#ff0055" />
                   <div>
-                    <h3 style={{ fontSize: '1rem', fontWeight: 600 }}>YouTube Channel Connection</h3>
+                    <h3 style={{ fontSize: '1rem', fontWeight: 600 }}>
+                      Channel Connection ({activeProfile === 'kids_wonder' ? '🎈 Kids Wonder World' : '🌌 Quantum Facts'})
+                    </h3>
                     <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                      {ytStatus.authenticated ? `Connected to ${ytStatus.channel.title}` : 'Ready for Client Secrets JSON'}
+                      {ytStatus.authenticated ? `Connected to ${ytStatus.channel.title}` : `No YouTube account linked for ${activeProfile === 'kids_wonder' ? 'Kids' : 'Main'} profile.`}
                     </p>
                   </div>
                 </div>
-                <span className={ytStatus.authenticated ? 'badge badge-success' : 'badge badge-shorts'}>
-                  {ytStatus.authenticated ? 'Connected' : 'Credentials Needed'}
-                </span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <button className="btn-secondary" style={{ padding: '6px 12px', fontSize: '0.8rem' }} onClick={handleConnectYt}>
+                    🔗 Link YouTube Account
+                  </button>
+                  <span className={ytStatus.authenticated ? 'badge badge-success' : 'badge badge-shorts'}>
+                    {ytStatus.authenticated ? 'Connected' : 'Unlinked'}
+                  </span>
+                </div>
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>

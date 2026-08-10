@@ -227,28 +227,30 @@ def get_video_library():
     return {"videos": videos}
 
 @app.get("/api/youtube/status")
-def get_youtube_status():
-    return youtube_publisher.get_channel_info()
+def get_youtube_status(profile_id: str = "quantum_facts"):
+    return youtube_publisher.get_channel_info(profile_id=profile_id)
 
 @app.get("/api/youtube/auth-url")
-def get_youtube_auth_url():
-    auth_url = youtube_publisher.get_auth_url()
+def get_youtube_auth_url(profile_id: str = "quantum_facts"):
+    auth_url = youtube_publisher.get_auth_url(profile_id=profile_id)
     if not auth_url:
         raise HTTPException(status_code=400, detail="client_secrets.json is missing in config/")
     return {"auth_url": auth_url}
 
 @app.get("/api/youtube/callback", response_class=HTMLResponse)
-def youtube_auth_callback(code: str):
-    success = youtube_publisher.exchange_code(code)
+def youtube_auth_callback(code: str, state: str = "quantum_facts"):
+    profile_id = state if state in ["quantum_facts", "kids_wonder"] else "quantum_facts"
+    success = youtube_publisher.exchange_code(code, profile_id=profile_id)
     if success:
-        info = youtube_publisher.get_channel_info()
+        info = youtube_publisher.get_channel_info(profile_id=profile_id)
         ch_title = info.get("channel", {}).get("title", "Your Channel")
+        profile_name = "Kids Wonder World" if profile_id == "kids_wonder" else "Quantum Facts"
         return f"""
         <html>
             <body style="font-family: sans-serif; background: #0f172a; color: #fff; text-align: center; padding-top: 50px;">
-                <h1 style="color: #34d399;">✓ YouTube Channel Connected!</h1>
-                <h2>Connected to: {ch_title}</h2>
-                <p>Your OAuth token has been saved to config/youtube_token.json.</p>
+                <h1 style="color: #34d399;">✓ YouTube Channel Connected for {profile_name}!</h1>
+                <h2>Connected Channel: {ch_title}</h2>
+                <p>OAuth token saved for profile: <b>{profile_id}</b></p>
                 <p>You can close this tab and return to AutoTube AI Studio!</p>
             </body>
         </html>
@@ -266,6 +268,7 @@ def youtube_auth_callback(code: str):
 class SyncCredentialsRequest(BaseModel):
     client_secrets_json: str = None
     youtube_token_json: str = None
+    profile_id: str = "quantum_facts"
 
 @app.post("/api/sync/credentials")
 def sync_credentials_to_cloud(req: SyncCredentialsRequest):
@@ -274,9 +277,10 @@ def sync_credentials_to_cloud(req: SyncCredentialsRequest):
         with open("config/client_secrets.json", "w", encoding="utf-8") as f:
             f.write(req.client_secrets_json)
     if req.youtube_token_json:
-        with open("config/youtube_token.json", "w", encoding="utf-8") as f:
+        token_path = f"config/youtube_token_{req.profile_id}.json" if req.profile_id != "quantum_facts" else "config/youtube_token.json"
+        with open(token_path, "w", encoding="utf-8") as f:
             f.write(req.youtube_token_json)
-    return {"success": True, "message": "Credentials successfully synced to Cloud Engine!"}
+    return {"success": True, "message": f"Credentials successfully synced for profile '{req.profile_id}'!"}
 
 @app.post("/api/youtube/credentials")
 def save_youtube_credentials(client_secrets_json: str):
@@ -288,6 +292,14 @@ def save_youtube_credentials(client_secrets_json: str):
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Invalid JSON: {e}")
 
+class YouTubeUploadRequest(BaseModel):
+    video_path: str
+    title: str
+    description: str
+    tags: str
+    privacy_status: str = "private"
+    profile_id: str = "quantum_facts"
+
 @app.post("/api/youtube/upload")
 def upload_to_youtube(req: YouTubeUploadRequest):
     res = youtube_publisher.upload_video(
@@ -295,7 +307,8 @@ def upload_to_youtube(req: YouTubeUploadRequest):
         title=req.title,
         description=req.description,
         tags=req.tags,
-        privacy_status=req.privacy_status
+        privacy_status=req.privacy_status,
+        profile_id=req.profile_id
     )
     return res
 
