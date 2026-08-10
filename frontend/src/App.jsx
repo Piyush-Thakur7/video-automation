@@ -581,25 +581,30 @@ export default function App() {
 
                 <div>
                   <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '8px' }}>Background Music Track</label>
-                  <div style={{ display: 'flex', gap: '8px' }}>
+                  <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
                     <select className="select-field" value={selectedBgm} onChange={(e) => setSelectedBgm(e.target.value)}>
                       {[...BGM_TRACKS, ...customBgmTracks].map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
                     </select>
 
-                    <button 
-                      className="btn-secondary" 
-                      onClick={handleToggleBgmPreview} 
-                      title="Test & Listen BGM Track"
-                      style={{ borderColor: isPlayingBgm ? '#34d399' : 'var(--border-color)', color: isPlayingBgm ? '#34d399' : '#ff0055' }}
-                    >
-                      {isPlayingBgm ? <Volume2 size={16} className="animate-pulse" /> : <Play size={16} />}
-                    </button>
-
-                    <label className="btn-secondary" style={{ cursor: 'pointer', padding: '0 10px', display: 'flex', alignItems: 'center' }} title="Upload Custom MP3 Track">
-                      <Upload size={16} />
+                    <label className="btn-secondary" style={{ cursor: 'pointer', padding: '0 12px', display: 'flex', alignItems: 'center', gap: '6px' }} title="Upload Custom MP3 Track">
+                      <Upload size={16} color="#34d399" />
+                      <span style={{ fontSize: '0.8rem' }}>Upload MP3</span>
                       <input type="file" accept="audio/mp3,audio/mpeg" style={{ display: 'none' }} onChange={handleCustomBgmUpload} />
                     </label>
                   </div>
+
+                  {selectedBgm !== 'none' && (
+                    <div style={{ marginTop: '8px', background: 'rgba(15, 23, 42, 0.8)', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+                      <p style={{ fontSize: '0.75rem', color: '#34d399', marginBottom: '6px', fontWeight: 600 }}>🎵 Audio Preview Player:</p>
+                      <audio 
+                        controls 
+                        style={{ width: '100%', height: '36px', borderRadius: '6px' }}
+                        src={`${API_BASE}/storage/bgm/${selectedBgm}`}
+                      >
+                        Your browser does not support audio elements.
+                      </audio>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
