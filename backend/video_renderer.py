@@ -329,10 +329,15 @@ class VideoRenderer:
         os.makedirs(os.path.join(self.temp_dir, "bgm"), exist_ok=True)
 
         if not os.path.exists(temp_target):
-            synth_expr = "0.35*sin(2*3.14159*130.81*t)+0.28*sin(2*3.14159*164.81*t)+0.22*sin(2*3.14159*196.00*t)+0.18*sin(2*3.14159*261.63*t)"
+            from create_bgm_library import TRACK_DESCRIPTIONS
+            track_info = TRACK_DESCRIPTIONS.get(bgm_name, {
+                "expr": "0.35*sin(2*3.14159*130.81*t)+0.28*sin(2*3.14159*164.81*t)+0.22*sin(2*3.14159*196.00*t)",
+                "filter": "volume=0.85,aecho=0.7:0.8:250:0.3"
+            })
             cmd = [
                 "ffmpeg", "-y", "-f", "lavfi",
-                "-i", f"aevalsrc=exprs='{synth_expr}':s=44100",
+                "-i", f"aevalsrc=exprs='{track_info['expr']}':s=44100",
+                "-af", track_info.get("filter", "volume=0.85"),
                 "-t", "120",
                 "-c:a", "libmp3lame", "-b:a", "192k",
                 temp_target
