@@ -98,7 +98,11 @@ class ScriptGenerator:
 
     def auto_select_bgm(self, topic: str, niche: str) -> str:
         t = topic.lower()
-        if any(w in t for w in ["scary", "ghost", "horror", "murder", "creepy", "mystery", "dark", "haunted", "unsolved"]):
+        if any(w in t for w in ["dog", "puppy", "canine", "animal", "pet", "funny", "cute", "humor", "joke"]):
+            return "happy_playful.mp3"
+        elif any(w in t for w in ["lofi", "chill", "relax", "cozy", "nature", "peace", "life", "habit"]):
+            return "lofi_chill.mp3"
+        elif any(w in t for w in ["scary", "ghost", "horror", "murder", "creepy", "mystery", "dark", "haunted", "unsolved"]):
             return "scary_drone.mp3"
         elif any(w in t for w in ["manipulate", "psychology", "mind", "silence", "narcissist", "secret", "body language"]):
             return "dark_suspense.mp3"
@@ -108,15 +112,15 @@ class ScriptGenerator:
             return "inspiring_modern.mp3"
         elif any(w in t for w in ["stoic", "marcus", "philosophy", "aurelius", "warrior", "space", "universe", "ancient"]):
             return "cinematic_epic.mp3"
-        elif any(w in t for w in ["discipline", "success", "workout", "grind", "focus", "1%", "win", "rule", "life"]):
+        elif any(w in t for w in ["discipline", "success", "workout", "grind", "focus", "1%", "win", "rule"]):
             return "triumphant_build.mp3"
-        elif any(w in t for w in ["fact", "curious", "bizarre", "ocean", "did you know", "science", "anime", "dog", "animal"]):
+        elif any(w in t for w in ["fact", "curious", "bizarre", "ocean", "did you know", "science", "anime"]):
             return "upbeat_cyber.mp3"
         
         niche_info = NICHE_TEMPLATES.get(niche)
         if niche_info:
-            return niche_info.get("bg_music", "tech_ambient.mp3")
-        return "tech_ambient.mp3"
+            return niche_info.get("bg_music", "happy_playful.mp3")
+        return "happy_playful.mp3"
 
     def _derive_visual_keywords(self, topic: str, niche: str) -> list:
         t = topic.lower()
