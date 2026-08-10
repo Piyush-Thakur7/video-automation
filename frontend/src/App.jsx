@@ -165,6 +165,17 @@ export default function App() {
     }
   };
 
+  const fetchBgmTracks = async () => {
+    try {
+      const res = await axios.get(`${API_BASE}/bgm/tracks`);
+      if (res.data.tracks && res.data.tracks.length > 0) {
+        setServerBgmTracks(res.data.tracks);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   const handleGenerateScript = async () => {
     setIsGeneratingScript(true);
     setRenderedResult(null);
