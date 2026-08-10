@@ -333,7 +333,10 @@ def set_autopilot_config(req: AutoPilotConfigRequest):
     )
     return {"success": True, "status": autopilot_daemon.get_status()}
 
-@app.api_route("/api/autopilot/trigger-cron", methods=["GET", "POST"])
+@app.get("/api/autopilot/trigger-cron")
+@app.post("/api/autopilot/trigger-cron")
+@app.get("/api/autopilot/trigger-now")
+@app.post("/api/autopilot/trigger-now")
 def trigger_cron_autopilot(background_tasks: BackgroundTasks):
     background_tasks.add_task(autopilot_daemon.execute_single_run, _run_autonomous_job)
     return {"success": True, "message": "Autonomous video generation & YouTube upload triggered!"}
