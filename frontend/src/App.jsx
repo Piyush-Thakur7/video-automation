@@ -160,10 +160,12 @@ export default function App() {
     setIsGeneratingScript(true);
     setRenderedResult(null);
     try {
-      const targetNiche = topicInput.trim() ? 'custom_niche' : selectedNiche;
+      const rawTopic = topicInput.trim();
+      const cleanTopic = (rawTopic.toLowerCase().includes('type any custom') || rawTopic.toLowerCase().includes('placeholder')) ? '' : rawTopic;
+      const targetNiche = cleanTopic ? 'custom_niche' : selectedNiche;
       const res = await axios.post(`${API_BASE}/script/generate`, {
         niche: targetNiche,
-        topic: topicInput,
+        topic: cleanTopic,
         video_type: videoType
       });
       if (res.data.success) {
