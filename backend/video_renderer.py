@@ -26,7 +26,7 @@ class VideoRenderer:
         ]
         for p in possible_paths:
             if os.path.exists(p):
-                return p.replace("\\", "/").replace(":", "\\\\:")
+                return p.replace("\\", "/").replace(":", "\\:")
         return ""
 
     def render_video(self, job_id: str, script_data: dict, voice_id: str = "en-US-ChristopherNeural", progress_callback=None) -> dict:
