@@ -121,24 +121,36 @@ class VideoRenderer:
 
         final_output_path = os.path.join(self.output_dir, f"{job_id}_{script_data.get('video_type', 'shorts')}.mp4")
 
-        # Select & Resolve Background Music Track
-        bgm_track_name = script_data.get("bg_music", "none")
-        if not bgm_track_name:
-            bgm_track_name = "none"
+        # Select & Resolve Background Music Track (AI Theme Matcher + 20% Volume Mix)
+        bgm_track_name = script_data.get("bg_music", "auto")
+        niche_key = script_data.get("niche", "dark_psychology")
+
+        if bgm_track_name.lower() in ["auto", "ai_select", ""]:
+            # AI Theme Selector: Selects best NEFFEX / NCS vibe based on script niche
+            if niche_key in ["kids_stories", "kids_learning", "kids_riddles", "cats", "dogs"]:
+                bgm_track_name = "happy_playful.mp3"
+            elif niche_key in ["dark_psychology", "stoicism"]:
+                bgm_track_name = "dark_suspense.mp3"
+            elif niche_key in ["space_exploration", "tech_future"]:
+                bgm_track_name = "upbeat_cyber.mp3"
+            elif niche_key in ["money_wealth", "history"]:
+                bgm_track_name = "inspiring_modern.mp3"
+            else:
+                bgm_track_name = "inspiring_modern.mp3"
 
         if bgm_track_name.lower() in ["none", "off", "no_bgm", "disabled"]:
             print("[VideoRenderer] Background music set to NONE. Using pure voiceover audio.")
             shutil.copy(raw_concat_video, final_output_path)
         else:
             bgm_path = self._get_or_create_bgm(bgm_track_name)
+            # 20% BGM Volume Leveling (volume=0.18) so voiceover is 100% crisp & loud over NEFFEX / NCS beats
             mix_cmd = [
                 "ffmpeg", "-y",
                 "-i", raw_concat_video,
                 "-stream_loop", "-1", "-i", bgm_path,
-                "-filter_complex", "[1:a]volume=0.35[bgm];[0:a][bgm]amix=inputs=2:duration=first[aout]",
+                "-filter_complex", "[1:a]volume=0.18[bgm];[0:a][bgm]amix=inputs=2:duration=first[aout]",
                 "-map", "0:v", "-map", "[aout]",
                 "-c:v", "copy", "-c:a", "aac", "-b:a", "192k",
-                "-shortest",
                 final_output_path
             ]
             try:
