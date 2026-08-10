@@ -81,6 +81,38 @@ NICHE_TEMPLATES = {
             "How to Reset Your Dopamine Baseline"
         ]
     },
+    "kids_stories": {
+        "name": "🧸 Kids Bedtime Stories & Magical Fairytales",
+        "bg_music": "happy_playful.mp3",
+        "visual_keywords": ["3d animated cute fantasy fairy tale", "magical glowing forest 3d cartoon", "cute 3d animals playing sunset", "colorful magical kingdom sky cartoon", "charming cute dragon 3d animation"],
+        "sample_topics": [
+            "The Brave Little Dragon Who Found His Flame",
+            "The Magical Tree That Grew Golden Stars",
+            "The Secret Party of the Forest Animals",
+            "The Curious Kitten's Adventure in Toyland"
+        ]
+    },
+    "kids_learning": {
+        "name": "🎈 Kids Fun Science & Animal Discoveries",
+        "bg_music": "happy_playful.mp3",
+        "visual_keywords": ["cute happy animals 3d cartoon", "colorful space planets kids cartoon", "playful dolphin jumping ocean 3d", "happy cute puppy running grass 3d", "colorful rainbows and clouds 3d animation"],
+        "sample_topics": [
+            "Why Do Flamingos Stand on One Leg?",
+            "How Do Fish Breathe Underwater?",
+            "Fun Space Facts Every Kid Should Know",
+            "Why Do Bees Make Honey?"
+        ]
+    },
+    "kids_riddles": {
+        "name": "🧩 Fun Riddles & Brain Teasers for Kids",
+        "bg_music": "happy_playful.mp3",
+        "visual_keywords": ["glowing question mark 3d cartoon", "cute detective cat 3d animation", "colorful riddle treasure box cartoon", "happy children thinking 3d animation"],
+        "sample_topics": [
+            "What Has Hands But Cannot Clap? Kids Riddle!",
+            "I Have a Neck But No Head! What Am I?",
+            "What Gets Wetter as It Dries? Fun Kids Riddle"
+        ]
+    },
     "custom_niche": {
         "name": "✨ Custom Topic / Any Custom Niche",
         "bg_music": "tech_ambient.mp3",
@@ -205,8 +237,38 @@ class ScriptGenerator:
         kw = visual_keywords
         t_low = topic.lower()
 
+        # KIDS BEDTIME STORIES & FAIRYTALES ENGINE
+        if niche == "kids_stories" or any(w in t_low for w in ["dragon", "fairy", "bedtime", "story", "magic", "princess", "toy"]):
+            scenes_content = [
+                ("Hook", "Once upon a time in a magical glowing forest, lived a little dragon who was looking for a magical secret!", kw[0] if len(kw) > 0 else "3d animated cute fantasy fairy tale", "MAGICAL TALE"),
+                ("Story 1", "Every night when the stars came out, the little dragon watched golden lights dance across the enchanted treetops.", kw[1] if len(kw) > 1 else "magical glowing forest 3d cartoon", "GOLDEN STARS"),
+                ("Story 2", "He met a friendly wise owl who whispered: 'True magic isn't in big spells, but in sharing kindness with friends!'", kw[2] if len(kw) > 2 else "cute 3d animals playing sunset", "THE WISE SECRET"),
+                ("Story 3", "With a happy smile, the little dragon shared his warm glowing spark with all the forest animals!", kw[3] if len(kw) > 3 else "colorful magical kingdom sky cartoon", "SHARING KINDNESS"),
+                ("Climax", "From that night on, the enchanted kingdom shone brighter than ever before!", kw[4] if len(kw) > 4 else "charming cute dragon 3d animation", "MAGICAL KINGDOM"),
+                ("CTA", "Did you love this bedtime story? Subscribe for new magical adventures every day!", kw[5] if len(kw) > 5 else "3d animated cute fantasy fairy tale", "SUBSCRIBE FOR STORIES")
+            ]
+        # KIDS RIDDLES ENGINE
+        elif niche == "kids_riddles" or any(w in t_low for w in ["riddle", "puzzle", "brain teaser", "what am i"]):
+            scenes_content = [
+                ("Hook", "Ready to test your brain power? Here is a super fun riddle! Can you guess the answer before the timer ends?", kw[0] if len(kw) > 0 else "glowing question mark 3d cartoon", "FUN KIDS RIDDLE"),
+                ("Riddle", "I have a face and two hands, but I have no arms or legs! What am I?", kw[1] if len(kw) > 1 else "cute detective cat 3d animation", "CAN YOU GUESS?"),
+                ("Clue", "Think carefully! I tick all day long and help you know when it's time for school or bedtime!", kw[2] if len(kw) > 2 else "colorful riddle treasure box cartoon", "HERE IS A CLUE!"),
+                ("Countdown", "3... 2... 1... Time is up!", kw[3] if len(kw) > 3 else "happy children thinking 3d animation", "3... 2... 1..."),
+                ("Answer", "The answer is... A CLOCK! Clocks have a face and two hands!", kw[4] if len(kw) > 4 else "glowing question mark 3d cartoon", "IT'S A CLOCK!"),
+                ("CTA", "Did you guess it right? Subscribe now for daily fun riddles and brain teasers!", kw[5] if len(kw) > 5 else "cute detective cat 3d animation", "SUBSCRIBE FOR MORE")
+            ]
+        # KIDS FUN SCIENCE & ANIMAL DISCOVERIES ENGINE
+        elif niche == "kids_learning" or any(w in t_low for w in ["flamingo", "fish", "bee", "ocean", "why do"]):
+            scenes_content = [
+                ("Hook", "Hey kids! Did you know the ocean and animal world is full of amazing superpowers? Let's explore three fun secrets!", kw[0] if len(kw) > 0 else "cute happy animals 3d cartoon", "KIDS DISCOVERY"),
+                ("Fact 1", "First, why do flamingos stand on one leg? Standing on one leg conserves body heat and takes less energy than standing on two!", kw[1] if len(kw) > 1 else "colorful space planets kids cartoon", "FLAMINGO SECRET"),
+                ("Fact 2", "Second, fish don't have lungs! They use special gills to pull oxygen directly out of the water while swimming.", kw[2] if len(kw) > 2 else "playful dolphin jumping ocean 3d", "HOW FISH BREATHE"),
+                ("Fact 3", "Third, honeybees visit over 2,000 flowers in a single day just to make one tiny jar of delicious honey!", kw[3] if len(kw) > 3 else "happy cute puppy running grass 3d", "BUSY HONEYBEES"),
+                ("Climax", "Nature is full of incredible wonder waiting for curious minds to discover!", kw[4] if len(kw) > 4 else "colorful rainbows and clouds 3d animation", "NEVER STOP LEARNING"),
+                ("CTA", "Which animal surprise was your favorite? Subscribe for more fun kids learning!", kw[5] if len(kw) > 5 else "cute happy animals 3d cartoon", "SUBSCRIBE FOR MORE")
+            ]
         # CATS / FELINES DOMAIN KNOWLEDGE ENGINE
-        if any(w in t_low for w in ["cat", "kitten", "feline"]):
+        elif any(w in t_low for w in ["cat", "kitten", "feline"]):
             scenes_content = [
                 ("Hook", "Think you know cats? These three mind-blowing feline facts will completely shock you!", kw[0] if len(kw) > 0 else "cute cat eyes close up", "CAT SECRETS"),
                 ("Fact 1", "First, a cat's purr vibrates between 20 and 140 Hertz—a frequency scientifically proven to heal human bones, muscles, and tendons!", kw[1] if len(kw) > 1 else "cat purring soft", "HEALING PURRS"),

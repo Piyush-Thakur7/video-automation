@@ -66,6 +66,9 @@ export default function App() {
   // Selected video for player/upload
   const [activeVideo, setActiveVideo] = useState(null);
 
+  // Channel Profile State ('quantum_facts' vs 'kids_wonder')
+  const [activeProfile, setActiveProfile] = useState('quantum_facts');
+
   // YouTube Upload Form
   const [ytUploadData, setYtUploadData] = useState({
     title: '',
@@ -364,6 +367,47 @@ export default function App() {
           </div>
         </div>
 
+        {/* Channel Profile Switcher */}
+        <div style={{ background: 'rgba(255,255,255,0.04)', padding: '12px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.08)' }}>
+          <p style={{ fontSize: '0.68rem', textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--text-dim)', marginBottom: '8px', fontWeight: 700 }}>Active Channel Profile</p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            <button
+              onClick={() => {
+                setActiveProfile('quantum_facts');
+                setSelectedNiche('dark_psychology');
+                setSelectedVoice('en-US-ChristopherNeural');
+                setSelectedBgm('none');
+              }}
+              style={{
+                display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 10px', borderRadius: '8px',
+                background: activeProfile === 'quantum_facts' ? 'rgba(139,92,246,0.2)' : 'transparent',
+                border: activeProfile === 'quantum_facts' ? '1px solid #8b5cf6' : '1px solid transparent',
+                color: activeProfile === 'quantum_facts' ? '#c084fc' : 'var(--text-muted)',
+                cursor: 'pointer', textAlign: 'left', fontWeight: 600, fontSize: '0.8rem'
+              }}
+            >
+              🌌 Quantum Facts (Main)
+            </button>
+            <button
+              onClick={() => {
+                setActiveProfile('kids_wonder');
+                setSelectedNiche('kids_stories');
+                setSelectedVoice('en-US-AnaNeural');
+                setSelectedBgm('happy_playful.mp3');
+              }}
+              style={{
+                display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 10px', borderRadius: '8px',
+                background: activeProfile === 'kids_wonder' ? 'rgba(236,72,153,0.2)' : 'transparent',
+                border: activeProfile === 'kids_wonder' ? '1px solid #ec4899' : '1px solid transparent',
+                color: activeProfile === 'kids_wonder' ? '#f472b6' : 'var(--text-muted)',
+                cursor: 'pointer', textAlign: 'left', fontWeight: 600, fontSize: '0.8rem'
+              }}
+            >
+              🎈 Kids Wonder (Children)
+            </button>
+          </div>
+        </div>
+
         <nav style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <button
             onClick={() => setActiveTab('dashboard')}
@@ -536,7 +580,18 @@ export default function App() {
           <div>
             <header style={{ marginBottom: '28px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
-                <h1 style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '4px' }}>AI Content Creator & Pipeline</h1>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '6px' }}>
+                  <h1 style={{ fontSize: '2rem', fontWeight: 700 }}>AI Content Creator & Pipeline</h1>
+                  {activeProfile === 'kids_wonder' ? (
+                    <span style={{ background: 'rgba(236,72,153,0.2)', border: '1px solid #ec4899', color: '#f472b6', padding: '4px 12px', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                      🎈 Kids Content Mode (COPPA Safe & 3D Animated Visuals)
+                    </span>
+                  ) : (
+                    <span style={{ background: 'rgba(139,92,246,0.2)', border: '1px solid #8b5cf6', color: '#c084fc', padding: '4px 12px', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                      🌌 Quantum Facts Mode (Science & Adult Knowledge)
+                    </span>
+                  )}
+                </div>
                 <p style={{ color: 'var(--text-muted)' }}>Design AI scripts, select background music, preview scene beats, and render 1080p MP4.</p>
               </div>
               

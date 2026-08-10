@@ -10,6 +10,8 @@ except Exception:
     pyttsx3 = None
 
 AVAILABLE_VOICES = [
+    {"id": "en-US-AnaNeural", "name": "Ana (Child Female - Playful & Storyteller)", "gender": "Female", "locale": "en-US"},
+    {"id": "en-US-SteffanNeural", "name": "Steffan (Child Male - Cheerful & Friendly)", "gender": "Male", "locale": "en-US"},
     {"id": "en-US-ChristopherNeural", "name": "Christopher (Male - Deep & Authoritative)", "gender": "Male", "locale": "en-US"},
     {"id": "en-US-GuyNeural", "name": "Guy (Male - Engaging & Energetic)", "gender": "Male", "locale": "en-US"},
     {"id": "en-US-JennyNeural", "name": "Jenny (Female - Warm & Clear)", "gender": "Female", "locale": "en-US"},
