@@ -102,29 +102,31 @@ class VideoRenderer:
         final_output_path = os.path.join(self.output_dir, f"{job_id}_{script_data.get('video_type', 'shorts')}.mp4")
 
         # Select & Resolve Background Music Track
-        bgm_track_name = script_data.get("bg_music", "auto")
-        if not bgm_track_name or bgm_track_name == "auto":
-            bgm_track_name = script_gen.auto_select_bgm(script_data.get("topic", ""), script_data.get("niche", ""))
+        bgm_track_name = script_data.get("bg_music", "none")
+        if not bgm_track_name:
+            bgm_track_name = "none"
 
-        bgm_path = self._get_or_create_bgm(bgm_track_name)
-
-        # Mix voice audio (input 0) with looping BGM track (input 1)
-        mix_cmd = [
-            "ffmpeg", "-y",
-            "-i", raw_concat_video,
-            "-stream_loop", "-1", "-i", bgm_path,
-            "-filter_complex", "[1:a]volume=0.50[bgm];[0:a][bgm]amix=inputs=2:duration=first[aout]",
-            "-map", "0:v", "-map", "[aout]",
-            "-c:v", "copy", "-c:a", "aac", "-b:a", "192k",
-            "-shortest",
-            final_output_path
-        ]
-        
-        try:
-            subprocess.run(mix_cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        except Exception as e:
-            print(f"[VideoRenderer] BGM mixing fallback: {e}")
+        if bgm_track_name.lower() in ["none", "off", "no_bgm", "disabled"]:
+            print("[VideoRenderer] Background music set to NONE. Using pure voiceover audio.")
             shutil.copy(raw_concat_video, final_output_path)
+        else:
+            bgm_path = self._get_or_create_bgm(bgm_track_name)
+            # Mix voice audio (input 0) with looping BGM track (input 1)
+            mix_cmd = [
+                "ffmpeg", "-y",
+                "-i", raw_concat_video,
+                "-stream_loop", "-1", "-i", bgm_path,
+                "-filter_complex", "[1:a]volume=0.35[bgm];[0:a][bgm]amix=inputs=2:duration=first[aout]",
+                "-map", "0:v", "-map", "[aout]",
+                "-c:v", "copy", "-c:a", "aac", "-b:a", "192k",
+                "-shortest",
+                final_output_path
+            ]
+            try:
+                subprocess.run(mix_cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            except Exception as e:
+                print(f"[VideoRenderer] BGM mixing fallback: {e}")
+                shutil.copy(raw_concat_video, final_output_path)
 
         # Clean up temporary clip files after successful render to prevent disk bloat
         try:

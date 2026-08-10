@@ -120,6 +120,31 @@ def preview_voice(voice_id: str = "en-US-ChristopherNeural", text: str = "Welcom
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.get("/api/bgm/tracks")
+def get_bgm_tracks():
+    bgm_dir = "storage/bgm"
+    os.makedirs(bgm_dir, exist_ok=True)
+    tracks = [{"id": "none", "name": "🔇 No Background Music (Pure Voiceover)", "url": None}]
+    for fname in sorted(os.listdir(bgm_dir)):
+        if fname.endswith(".mp3"):
+            tracks.append({
+                "id": fname,
+                "name": fname.replace("_", " ").replace(".mp3", "").title(),
+                "url": f"/storage/bgm/{fname}"
+            })
+    return {"tracks": tracks}
+
+@app.post("/api/bgm/upload")
+def upload_custom_bgm(file: UploadFile = File(...)):
+    if not file.filename.lower().endswith(".mp3"):
+        raise HTTPException(status_code=400, detail="Only .mp3 files are allowed")
+    bgm_dir = "storage/bgm"
+    os.makedirs(bgm_dir, exist_ok=True)
+    save_path = os.path.join(bgm_dir, file.filename)
+    with open(save_path, "wb") as f:
+        f.write(file.file.read())
+    return {"success": True, "filename": file.filename, "url": f"/storage/bgm/{file.filename}"}
+
 @app.post("/api/video/render")
 def start_video_render(req: RenderRequest):
     job_id = f"job_{uuid.uuid4().hex[:8]}"

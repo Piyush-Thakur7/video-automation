@@ -19,14 +19,16 @@ const LOCAL_BACKEND = 'http://127.0.0.1:8000/api';
 const API_BASE = localStorage.getItem('AUTOTUBE_API_BASE') || LOCAL_BACKEND;
 
 const BGM_TRACKS = [
-  { id: "auto", name: "✨ Auto-Select Best AI BGM (Recommended)" },
-  { id: "dark_suspense.mp3", name: "Dark Suspense Ambient" },
-  { id: "upbeat_cyber.mp3", name: "Upbeat Cyber Synth" },
-  { id: "tech_ambient.mp3", name: "Tech Ambient Futuristic" },
-  { id: "inspiring_modern.mp3", name: "Inspiring Modern Atmosphere" },
-  { id: "cinematic_epic.mp3", name: "Cinematic Epic Drone" },
-  { id: "scary_drone.mp3", name: "Scary Mystery Tension" },
-  { id: "triumphant_build.mp3", name: "Triumphant Motivation Build" }
+  { id: "none", name: "🔇 No Background Music (Pure Voiceover)", url: null },
+  { id: "happy_playful.mp3", name: "🐶 Happy Playful (Dogs, Pets, Funny)", url: "/storage/bgm/happy_playful.mp3" },
+  { id: "lofi_chill.mp3", name: "☕ Lofi Chill (Relaxing, Nature)", url: "/storage/bgm/lofi_chill.mp3" },
+  { id: "dark_suspense.mp3", name: "Dark Suspense Ambient", url: "/storage/bgm/dark_suspense.mp3" },
+  { id: "upbeat_cyber.mp3", name: "Upbeat Cyber Synth", url: "/storage/bgm/upbeat_cyber.mp3" },
+  { id: "tech_ambient.mp3", name: "Tech Ambient Futuristic", url: "/storage/bgm/tech_ambient.mp3" },
+  { id: "inspiring_modern.mp3", name: "Inspiring Modern Atmosphere", url: "/storage/bgm/inspiring_modern.mp3" },
+  { id: "cinematic_epic.mp3", name: "Cinematic Epic Drone", url: "/storage/bgm/cinematic_epic.mp3" },
+  { id: "scary_drone.mp3", name: "Scary Mystery Tension", url: "/storage/bgm/scary_drone.mp3" },
+  { id: "triumphant_build.mp3", name: "Triumphant Motivation Build", url: "/storage/bgm/triumphant_build.mp3" }
 ];
 
 export default function App() {
@@ -39,12 +41,17 @@ export default function App() {
   const [ytStatus, setYtStatus] = useState({ authenticated: false });
   const [autoPilotStatus, setAutoPilotStatus] = useState({ enabled: false, history: [] });
 
+  // Custom BGM state
+  const [customBgmTracks, setCustomBgmTracks] = useState([]);
+  const [bgmAudioObj, setBgmAudioObj] = useState(null);
+  const [isPlayingBgm, setIsPlayingBgm] = useState(false);
+
   // Creator state
   const [selectedNiche, setSelectedNiche] = useState('dark_psychology');
   const [topicInput, setTopicInput] = useState('');
   const [videoType, setVideoType] = useState('shorts');
   const [selectedVoice, setSelectedVoice] = useState('en-US-ChristopherNeural');
-  const [selectedBgm, setSelectedBgm] = useState('auto');
+  const [selectedBgm, setSelectedBgm] = useState('none');
   
   const [isGeneratingScript, setIsGeneratingScript] = useState(false);
   const [scriptData, setScriptData] = useState(null);
@@ -191,11 +198,57 @@ export default function App() {
     try {
       const res = await axios.post(`${API_BASE}/tts/preview?voice_id=${selectedVoice}&text=AutoTube%20AI%20Voice%20Synthesis%20Test`);
       if (res.data.audio_url) {
-        const audio = new Audio(`http://127.0.0.1:8000${res.data.audio_url}`);
+        const audio = new Audio(`${API_BASE}${res.data.audio_url}`);
         audio.play();
       }
     } catch (e) {
       console.error(e);
+    }
+  };
+
+  const handleToggleBgmPreview = () => {
+    if (isPlayingBgm && bgmAudioObj) {
+      bgmAudioObj.pause();
+      setIsPlayingBgm(false);
+      return;
+    }
+
+    const allTracks = [...BGM_TRACKS, ...customBgmTracks];
+    const target = allTracks.find(t => t.id === selectedBgm);
+    if (!target || !target.url) {
+      alert("No background music selected (Pure Voiceover mode is active).");
+      return;
+    }
+
+    const audioUrl = `${API_BASE}${target.url.startsWith('/') ? '' : '/'}${target.url}`;
+    const audio = new Audio(audioUrl);
+    audio.onended = () => setIsPlayingBgm(false);
+    audio.play();
+    setBgmAudioObj(audio);
+    setIsPlayingBgm(true);
+  };
+
+  const handleCustomBgmUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const formData = new FormData();
+    formData.append("file", file);
+    try {
+      const res = await axios.post(`${API_BASE}/bgm/upload`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      if (res.data.success) {
+        const newTrack = {
+          id: res.data.filename,
+          name: `🎵 Custom: ${res.data.filename}`,
+          url: res.data.url
+        };
+        setCustomBgmTracks(prev => [...prev, newTrack]);
+        setSelectedBgm(res.data.filename);
+        alert(`✓ Custom MP3 uploaded & selected: ${res.data.filename}`);
+      }
+    } catch (err) {
+      alert(`Upload Error: ${err.response?.data?.detail || err.message}`);
     }
   };
 
@@ -528,9 +581,25 @@ export default function App() {
 
                 <div>
                   <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '8px' }}>Background Music Track</label>
-                  <select className="select-field" value={selectedBgm} onChange={(e) => setSelectedBgm(e.target.value)}>
-                    {BGM_TRACKS.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
-                  </select>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <select className="select-field" value={selectedBgm} onChange={(e) => setSelectedBgm(e.target.value)}>
+                      {[...BGM_TRACKS, ...customBgmTracks].map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
+                    </select>
+
+                    <button 
+                      className="btn-secondary" 
+                      onClick={handleToggleBgmPreview} 
+                      title="Test & Listen BGM Track"
+                      style={{ borderColor: isPlayingBgm ? '#34d399' : 'var(--border-color)', color: isPlayingBgm ? '#34d399' : '#ff0055' }}
+                    >
+                      {isPlayingBgm ? <Volume2 size={16} className="animate-pulse" /> : <Play size={16} />}
+                    </button>
+
+                    <label className="btn-secondary" style={{ cursor: 'pointer', padding: '0 10px', display: 'flex', alignItems: 'center' }} title="Upload Custom MP3 Track">
+                      <Upload size={16} />
+                      <input type="file" accept="audio/mp3,audio/mpeg" style={{ display: 'none' }} onChange={handleCustomBgmUpload} />
+                    </label>
+                  </div>
                 </div>
               </div>
             </div>
