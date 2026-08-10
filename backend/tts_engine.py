@@ -4,7 +4,10 @@ import json
 import time
 import edge_tts
 from gtts import gTTS
-import pyttsx3
+try:
+    import pyttsx3
+except Exception:
+    pyttsx3 = None
 
 AVAILABLE_VOICES = [
     {"id": "en-US-ChristopherNeural", "name": "Christopher (Male - Deep & Authoritative)", "gender": "Male", "locale": "en-US"},
@@ -80,28 +83,33 @@ class TTSEngine:
         except Exception as gtts_err:
             print(f"[TTSEngine gTTS Fallback Error] {gtts_err}")
 
-        # Fallback 2: Offline pyttsx3 voice engine
-        print("[TTSEngine] Falling back to pyttsx3 offline speech synthesizer.")
-        engine = pyttsx3.init()
-        wav_path = output_path.rsplit(".", 1)[0] + ".wav"
-        engine.save_to_file(text, wav_path)
-        engine.runAndWait()
+        # Fallback 2: Offline pyttsx3 voice engine (if available)
+        if pyttsx3:
+            try:
+                print("[TTSEngine] Falling back to pyttsx3 offline speech synthesizer.")
+                engine = pyttsx3.init()
+                wav_path = output_path.rsplit(".", 1)[0] + ".wav"
+                engine.save_to_file(text, wav_path)
+                engine.runAndWait()
 
-        # Convert WAV to MP3 via FFmpeg
-        import subprocess
-        subprocess.run(["ffmpeg", "-y", "-i", wav_path, "-c:a", "libmp3lame", "-b:a", "192k", output_path], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        if os.path.exists(wav_path):
-            os.remove(wav_path)
+                import subprocess
+                subprocess.run(["ffmpeg", "-y", "-i", wav_path, "-c:a", "libmp3lame", "-b:a", "192k", output_path], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                if os.path.exists(wav_path):
+                    os.remove(wav_path)
 
-        srt_path = output_path.rsplit(".", 1)[0] + ".srt"
-        with open(srt_path, "w", encoding="utf-8") as f:
-            f.write(f"1\n00:00:00,000 --> 00:00:05,000\n{text}\n")
+                srt_path = output_path.rsplit(".", 1)[0] + ".srt"
+                with open(srt_path, "w", encoding="utf-8") as f:
+                    f.write(f"1\n00:00:00,000 --> 00:00:05,000\n{text}\n")
 
-        return {
-            "audio_path": output_path,
-            "srt_path": srt_path,
-            "word_timestamps": []
-        }
+                return {
+                    "audio_path": output_path,
+                    "srt_path": srt_path,
+                    "word_timestamps": []
+                }
+            except Exception as pyttsx3_err:
+                print(f"[TTSEngine pyttsx3 Fallback Error] {pyttsx3_err}")
+
+        raise RuntimeError(f"All TTS engines failed to generate speech for text: {text[:30]}...")
 
     def generate_speech(self, text: str, voice: str = "en-US-ChristopherNeural", rate: str = "+0%", pitch: str = "+0Hz", output_path: str = None) -> dict:
         return asyncio.run(self.generate_speech_async(text, voice, rate, pitch, output_path))
