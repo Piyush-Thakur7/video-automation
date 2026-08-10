@@ -165,14 +165,14 @@ def start_video_render(req: RenderRequest):
         "error": None
     }
 
-    def update_job(j_id, progress, msg):
-        if j_id in RENDER_JOBS:
-            RENDER_JOBS[j_id]["progress"] = progress
-            RENDER_JOBS[j_id]["message"] = msg
+    def update_job(progress, msg):
+        if job_id in RENDER_JOBS:
+            RENDER_JOBS[job_id]["progress"] = progress
+            RENDER_JOBS[job_id]["message"] = msg
             if progress >= 100.0:
-                RENDER_JOBS[j_id]["status"] = "completed"
+                RENDER_JOBS[job_id]["status"] = "completed"
             else:
-                RENDER_JOBS[j_id]["status"] = "rendering"
+                RENDER_JOBS[job_id]["status"] = "rendering"
 
     def run_render_task():
         try:
