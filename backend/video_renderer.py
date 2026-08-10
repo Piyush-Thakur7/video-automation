@@ -26,7 +26,7 @@ class VideoRenderer:
         ]
         for p in possible_paths:
             if os.path.exists(p):
-                return p.replace("\\", "/").replace(":", "\\:")
+                return p.replace("\\", "/").replace(":", "\\\\:")
         return ""
 
     def render_video(self, job_id: str, script_data: dict, voice_id: str = "en-US-ChristopherNeural", progress_callback=None) -> dict:
@@ -186,7 +186,14 @@ class VideoRenderer:
 
         # Format spoken script text into clean 2-3 line viral subtitles
         formatted_subtitle = self._wrap_text(spoken_text, max_chars=24 if is_shorts else 40)
-        escaped_subtitle = formatted_subtitle.replace(":", "\\:").replace("'", "").replace('"', "")
+        escaped_subtitle = (
+            formatted_subtitle.replace("\\", "\\\\")
+            .replace(":", "\\:")
+            .replace("%", "\\%")
+            .replace("'", "")
+            .replace('"', "")
+            .replace("\n", "\\n")
+        )
         font_path = self._get_font_path()
         font_param = f":fontfile='{font_path}'" if font_path else ""
         
