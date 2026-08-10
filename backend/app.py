@@ -304,6 +304,12 @@ def _run_autonomous_job(niche: str, video_type: str, voice_id: str, privacy_stat
         "yt_status": yt_res.get("video_url") if yt_res.get("success") else "Saved to local library (YT credentials pending)"
     }
 
+@app.on_event("startup")
+def startup_event():
+    if autopilot_daemon.enabled:
+        print("[Startup] Resuming AutoPilot background daemon...")
+        autopilot_daemon.start(_run_autonomous_job)
+
 @app.get("/api/autopilot/status")
 def get_autopilot_status():
     return autopilot_daemon.get_status()
@@ -326,6 +332,11 @@ def set_autopilot_config(req: AutoPilotConfigRequest):
         voice_id=req.voice_id
     )
     return {"success": True, "status": autopilot_daemon.get_status()}
+
+@app.api_route("/api/autopilot/trigger-cron", methods=["GET", "POST"])
+def trigger_cron_autopilot(background_tasks: BackgroundTasks):
+    background_tasks.add_task(autopilot_daemon.execute_single_run, _run_autonomous_job)
+    return {"success": True, "message": "Autonomous video generation & YouTube upload triggered!"}
 
 if __name__ == "__main__":
     import uvicorn
