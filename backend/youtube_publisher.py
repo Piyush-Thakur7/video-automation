@@ -8,13 +8,41 @@ from google.auth.transport.requests import Request
 
 SCOPES = ['https://www.googleapis.com/auth/youtube.upload', 'https://www.googleapis.com/auth/youtube.readonly']
 
+import base64
+
 class YouTubePublisher:
     def __init__(self, credentials_path: str = "config/client_secrets.json", token_path: str = "config/youtube_token.json"):
         self.credentials_path = credentials_path
         self.token_path = token_path
         os.makedirs("config", exist_ok=True)
+        self._ensure_config_files()
+
+    def _ensure_config_files(self):
+        try:
+            if not os.path.exists(self.credentials_path):
+                raw_secrets = os.environ.get("CLIENT_SECRETS_JSON")
+                b64_secrets = os.environ.get("CLIENT_SECRETS_B64")
+                if b64_secrets:
+                    raw_secrets = base64.b64decode(b64_secrets).decode("utf-8")
+                if raw_secrets:
+                    secrets_data = json.loads(raw_secrets)
+                    with open(self.credentials_path, "w", encoding="utf-8") as f:
+                        json.dump(secrets_data, f, indent=2)
+
+            if not os.path.exists(self.token_path):
+                raw_token = os.environ.get("YOUTUBE_TOKEN_JSON")
+                b64_token = os.environ.get("YOUTUBE_TOKEN_B64")
+                if b64_token:
+                    raw_token = base64.b64decode(b64_token).decode("utf-8")
+                if raw_token:
+                    token_data = json.loads(raw_token)
+                    with open(self.token_path, "w", encoding="utf-8") as f:
+                        json.dump(token_data, f, indent=2)
+        except Exception as e:
+            print(f"[YouTubePublisher Init Error] {e}")
 
     def _get_credentials(self):
+        self._ensure_config_files()
         if not os.path.exists(self.token_path):
             return None
 
@@ -22,7 +50,7 @@ class YouTubePublisher:
             creds = Credentials.from_authorized_user_file(self.token_path, SCOPES)
             if creds and creds.expired and creds.refresh_token:
                 creds.refresh(Request())
-                with open(self.token_path, 'w') as f:
+                with open(self.token_path, 'w', encoding="utf-8") as f:
                     f.write(creds.to_json())
             return creds
         except Exception as e:
