@@ -29,6 +29,7 @@ app.add_middleware(
 os.makedirs("storage", exist_ok=True)
 os.makedirs("config", exist_ok=True)
 app.mount("/storage", StaticFiles(directory="storage"), name="storage")
+app.mount("/api/storage", StaticFiles(directory="storage"), name="api_storage")
 
 RENDER_JOBS = {}
 

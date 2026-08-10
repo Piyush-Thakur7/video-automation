@@ -42,6 +42,7 @@ export default function App() {
   const [autoPilotStatus, setAutoPilotStatus] = useState({ enabled: false, history: [] });
 
   // Custom BGM state
+  const [serverBgmTracks, setServerBgmTracks] = useState([]);
   const [customBgmTracks, setCustomBgmTracks] = useState([]);
   const [bgmAudioObj, setBgmAudioObj] = useState(null);
   const [isPlayingBgm, setIsPlayingBgm] = useState(false);
@@ -593,18 +594,28 @@ export default function App() {
                     </label>
                   </div>
 
-                  {selectedBgm !== 'none' && (
-                    <div style={{ marginTop: '8px', background: 'rgba(15, 23, 42, 0.8)', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
-                      <p style={{ fontSize: '0.75rem', color: '#34d399', marginBottom: '6px', fontWeight: 600 }}>🎵 Audio Preview Player:</p>
-                      <audio 
-                        controls 
-                        style={{ width: '100%', height: '36px', borderRadius: '6px' }}
-                        src={`${API_BASE}/storage/bgm/${selectedBgm}`}
-                      >
-                        Your browser does not support audio elements.
-                      </audio>
-                    </div>
-                  )}
+                  {selectedBgm !== 'none' && (() => {
+                    const allTracks = [...(serverBgmTracks.length > 0 ? serverBgmTracks : BGM_TRACKS), ...customBgmTracks];
+                    const target = allTracks.find(t => t.id === selectedBgm);
+                    const cleanApiHost = API_BASE.replace(/\/api\/?$/, '');
+                    const rawUrl = target && target.url ? target.url : `/storage/bgm/${selectedBgm}`;
+                    const audioSrc = `${cleanApiHost}${rawUrl.startsWith('/') ? '' : '/'}${rawUrl}`;
+                    return (
+                      <div style={{ marginTop: '8px', background: 'rgba(15, 23, 42, 0.8)', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+                        <p style={{ fontSize: '0.75rem', color: '#34d399', marginBottom: '6px', fontWeight: 600 }}>🎵 Audio Preview Player ({target ? target.name : selectedBgm}):</p>
+                        <audio 
+                          key={audioSrc}
+                          controls 
+                          preload="auto"
+                          style={{ width: '100%', height: '36px', borderRadius: '6px' }}
+                          src={audioSrc}
+                        >
+                          <source src={audioSrc} type="audio/mpeg" />
+                          Your browser does not support audio elements.
+                        </audio>
+                      </div>
+                    );
+                  })()}
                 </div>
               </div>
             </div>

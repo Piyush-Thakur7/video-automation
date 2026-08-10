@@ -1,7 +1,10 @@
 import asyncio
 import os
 import json
+import time
 import edge_tts
+from gtts import gTTS
+import pyttsx3
 
 AVAILABLE_VOICES = [
     {"id": "en-US-ChristopherNeural", "name": "Christopher (Male - Deep & Authoritative)", "gender": "Male", "locale": "en-US"},
@@ -26,34 +29,78 @@ class TTSEngine:
             filename = f"tts_{hash(text + voice + rate)}&.mp3".replace("-", "n")
             output_path = os.path.join(self.output_dir, filename)
 
-        communicate = edge_tts.Communicate(text, voice, rate=rate, pitch=pitch)
-        
-        subtitles = []
-        word_timestamps = []
+        # Retry loop for Edge-TTS (up to 3 attempts with exponential backoff)
+        last_err = None
+        for attempt in range(1, 4):
+            try:
+                communicate = edge_tts.Communicate(text, voice, rate=rate, pitch=pitch)
+                submaker = edge_tts.SubMaker()
+                word_timestamps = []
 
-        submaker = edge_tts.SubMaker()
+                with open(output_path, "wb") as file:
+                    async for chunk in communicate.stream():
+                        if chunk["type"] == "audio":
+                            file.write(chunk["data"])
+                        elif chunk["type"] == "WordBoundary":
+                            submaker.feed(chunk)
+                            word_timestamps.append({
+                                "text": chunk["text"],
+                                "offset": chunk["offset"] / 10000,
+                                "duration": chunk["duration"] / 10000
+                            })
 
-        with open(output_path, "wb") as file:
-            async for chunk in communicate.stream():
-                if chunk["type"] == "audio":
-                    file.write(chunk["data"])
-                elif chunk["type"] == "WordBoundary":
-                    submaker.feed(chunk)
-                    word_timestamps.append({
-                        "text": chunk["text"],
-                        "offset": chunk["offset"] / 10000, # convert 100ns units to ms
-                        "duration": chunk["duration"] / 10000
-                    })
+                srt_content = submaker.get_srt()
+                srt_path = output_path.rsplit(".", 1)[0] + ".srt"
+                with open(srt_path, "w", encoding="utf-8") as srt_file:
+                    srt_file.write(srt_content)
 
-        srt_content = submaker.get_srt()
+                return {
+                    "audio_path": output_path,
+                    "srt_path": srt_path,
+                    "word_timestamps": word_timestamps
+                }
+            except Exception as err:
+                last_err = err
+                print(f"[TTSEngine Edge-TTS Retry {attempt}/3] {err}")
+                await asyncio.sleep( attempt * 1.5 )
+
+        # Fallback 1: gTTS (Google Text-To-Speech)
+        print(f"[TTSEngine] Falling back to gTTS (Google Cloud TTS) due to: {last_err}")
+        try:
+            tts = gTTS(text=text, lang='en', slow=False)
+            tts.save(output_path)
+            srt_path = output_path.rsplit(".", 1)[0] + ".srt"
+            with open(srt_path, "w", encoding="utf-8") as f:
+                f.write(f"1\n00:00:00,000 --> 00:00:05,000\n{text}\n")
+            return {
+                "audio_path": output_path,
+                "srt_path": srt_path,
+                "word_timestamps": []
+            }
+        except Exception as gtts_err:
+            print(f"[TTSEngine gTTS Fallback Error] {gtts_err}")
+
+        # Fallback 2: Offline pyttsx3 voice engine
+        print("[TTSEngine] Falling back to pyttsx3 offline speech synthesizer.")
+        engine = pyttsx3.init()
+        wav_path = output_path.rsplit(".", 1)[0] + ".wav"
+        engine.save_to_file(text, wav_path)
+        engine.runAndWait()
+
+        # Convert WAV to MP3 via FFmpeg
+        import subprocess
+        subprocess.run(["ffmpeg", "-y", "-i", wav_path, "-c:a", "libmp3lame", "-b:a", "192k", output_path], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        if os.path.exists(wav_path):
+            os.remove(wav_path)
+
         srt_path = output_path.rsplit(".", 1)[0] + ".srt"
-        with open(srt_path, "w", encoding="utf-8") as srt_file:
-            srt_file.write(srt_content)
+        with open(srt_path, "w", encoding="utf-8") as f:
+            f.write(f"1\n00:00:00,000 --> 00:00:05,000\n{text}\n")
 
         return {
             "audio_path": output_path,
             "srt_path": srt_path,
-            "word_timestamps": word_timestamps
+            "word_timestamps": []
         }
 
     def generate_speech(self, text: str, voice: str = "en-US-ChristopherNeural", rate: str = "+0%", pitch: str = "+0Hz", output_path: str = None) -> dict:
