@@ -96,6 +96,16 @@ export default function App() {
     fetchYtStatus(activeProfile);
   }, [activeProfile]);
 
+  useEffect(() => {
+    if (activeTab === 'youtube' && !activeVideo && videos.length > 0) {
+      setActiveVideo(videos[0]);
+      setYtUploadData(prev => ({
+        ...prev,
+        title: prev.title || videos[0].filename.replace('.mp4', '').replace(/_/g, ' ')
+      }));
+    }
+  }, [activeTab, videos]);
+
   // Poll render job status if active
   useEffect(() => {
     let interval;
@@ -293,23 +303,41 @@ export default function App() {
   };
 
   const handleYouTubeUpload = async () => {
-    if (!activeVideo && !renderedResult) return;
-    const vPath = activeVideo ? activeVideo.path : renderedResult.output_path;
+    let vPath = activeVideo ? activeVideo.path : (renderedResult ? renderedResult.output_path : null);
+
+    // Auto-select latest video from library if none selected
+    if (!vPath && videos.length > 0) {
+      vPath = videos[0].path;
+      setActiveVideo(videos[0]);
+    }
+
+    if (!vPath) {
+      setUploadResult({ success: false, error: "Please select a video file from Video Library before publishing." });
+      return;
+    }
 
     setIsUploadingYt(true);
     setUploadResult(null);
     try {
+      const tagList = typeof ytUploadData.tags === 'string' 
+        ? ytUploadData.tags.split(',').map(t => t.trim()).filter(Boolean)
+        : (Array.isArray(ytUploadData.tags) ? ytUploadData.tags : ['shorts', 'viral']);
+
       const res = await axios.post(`${API_BASE}/youtube/upload`, {
         video_path: vPath,
-        title: ytUploadData.title,
-        description: ytUploadData.description,
-        tags: ytUploadData.tags.split(',').map(t => t.trim()),
-        privacy_status: ytUploadData.privacy,
+        title: ytUploadData.title || (activeVideo ? activeVideo.filename : 'Shorts Video'),
+        description: ytUploadData.description || '#shorts #viral #facts',
+        tags: tagList.join(','),
+        privacy_status: ytUploadData.privacy || 'private',
         profile_id: activeProfile
       });
       setUploadResult(res.data);
     } catch (e) {
-      setUploadResult({ success: false, error: e.message });
+      const detailMsg = e.response?.data?.detail;
+      const errorMsg = typeof detailMsg === 'string' 
+        ? detailMsg 
+        : (Array.isArray(detailMsg) ? detailMsg.map(d => d.msg || JSON.stringify(d)).join(', ') : e.message);
+      setUploadResult({ success: false, error: errorMsg });
     } finally {
       setIsUploadingYt(false);
     }
